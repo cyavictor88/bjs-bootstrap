@@ -2,15 +2,18 @@ const path = require("path");
 const fs = require("fs");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const appDirectory = fs.realpathSync(process.cwd());
-
+// const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 module.exports = {
-    entry: path.resolve(appDirectory, "src/app.ts"), //path to the main .ts file
+    entry: path.resolve(appDirectory, "src/mathtext/app.ts"), //path to the main .ts file
     output: {
-        filename: "js/bundleName.js", //name for the js file that is created/compiled in memory
+        filename: "js/mathtext.js", //name for the js file that is created/compiled in memory
         clean: true,
     },
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
+        // fallback: {
+            // "fs": false
+        // },
     },
     devServer: {
         host: "0.0.0.0",
@@ -34,7 +37,26 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: true,
             template: path.resolve(appDirectory, "public/index.html"),
-        })
+        }) , 
+        // new NodePolyfillPlugin()
     ],
+
     mode: "development",
 };
+
+// to get jison to work, npm install --save-dev node-polyfill-webpack-plugin
+// and then add those lines:
+// const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
+// 
+// plugins: [
+//     ... ,
+//     new NodePolyfillPlugin(),
+//     ...,
+// ],
+// resolve: {
+//     ...,
+//     fallback: {
+//         "fs": false
+//     },
+//      ...,
+// },
