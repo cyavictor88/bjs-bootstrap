@@ -1,5 +1,6 @@
 import katex from "katex";
 import { XMLParser, XMLValidator, XMLBuilder } from "fast-xml-parser";
+import * as lodash from 'lodash';
 
 
 export function recuIterdp(node) {
@@ -17,8 +18,72 @@ export function recuIterdp(node) {
     }
 
 }
+export function recuArray(prenodeKey,curArr,level){
 
-export function recuIterfp(prenodekey, nodeArr,level) {
+    for(var i = 0; i < curArr.length; i++)
+    {
+        recuObject(prenodeKey,curArr[i],level);
+    }
+
+}
+
+export function recuObject(prenodeKey, curObj, level){
+
+    if(Object.prototype.toString.call(curObj) === '[object Array]')
+    {
+        recuArray(prenodeKey, curObj, level);
+        return;
+    }
+
+
+
+    // console.log(prenodeKey+" "+curObj+" level:"+level.toString());
+    // console.log(curObj);
+    // console.log(Object.keys(curObj));
+    let attriKey = ":@";
+    let contentKey = "#text";
+    var keys = Object.keys(curObj);
+    var reorderedkeys=[];
+    for (var j = 0; j < keys.length; j++) {
+        let key=keys[j];
+        if(!key.includes(attriKey)) reorderedkeys.push(key);
+        if(key!=contentKey) reorderedkeys.push(key);
+    }
+
+    if(lodash.includes(keys,contentKey))
+    {
+        console.log(prenodeKey+" "+contentKey + " " +curObj[contentKey]+" level:"+(level-1).toString());
+    }
+
+
+
+
+    for(var i = 0; i < keys.length; i++)
+    {
+        let key=keys[i];
+        let val = curObj[key];
+        if (Object.prototype.toString.call(val) === '[object Array]') {
+            console.log("start:"+key+ " " + level.toString());
+            if(lodash.includes(keys,attriKey))
+            {
+                for (var k = 0; k < Object.keys(curObj[attriKey]).length; k++) {
+        
+                    var subkey = Object.keys(curObj[attriKey])[k];
+                    var subval = curObj[attriKey][subkey];
+                    console.log(key+" "+subkey + " " +subval+" level:"+level.toString());
+                }
+        
+            }
+            recuObject(key,val, level+1);
+            // console.log(" done");
+
+        }
+
+    }
+
+}
+
+export function recuIterfp(prenodekey, nodeArr,level, numNodeProcessed) {
 
 
     // check if array or object
@@ -30,28 +95,35 @@ export function recuIterfp(prenodekey, nodeArr,level) {
 
 
         var reorderkeys = [];
-        var haslittlemouse=0;
         for (var j = 0; j < Object.keys(tmpobj).length; j++) {
+
+            
             var key = Object.keys(tmpobj)[j];
-            if(key==":@") haslittlemouse=1;
-        }
-        if(haslittlemouse==1)reorderkeys.push(":@");
-        for (var j = 0; j < Object.keys(tmpobj).length; j++) {
-            var key = Object.keys(tmpobj)[j];
+            console.log("key:"+key);
             if(key!=":@") reorderkeys.push(key);
         }
+
+        if(lodash.includes(Object.keys(tmpobj),":@"))reorderkeys.push(":@");
+        // reorderkeys.push("numNodeProcessed");
 
         // for (var j = 0; j < reorderkeys.length; j++) {
         //         console.log("yooooooooooo:"+reorderkeys[j]);
         // }
 
         // for (var j = 0; j < Object.keys(tmpobj).length; j++) {
+            // numNodeProcessed+=1;
+            // tmpobj["numNodeProcessed"]=numNodeProcessed;
+
         for (var j = 0; j < reorderkeys.length; j++) {
 
             
 
             // var key = Object.keys(tmpobj)[j];
             var key:string = reorderkeys[j];
+
+
+
+
             var val = tmpobj[key];
 
             if( key.includes("annotation"))
@@ -64,26 +136,35 @@ export function recuIterfp(prenodekey, nodeArr,level) {
 
                     var subkey = Object.keys(val)[k];
                     var subval = val[subkey];
-                    console.log(reorderkeys[j+1]+" "+key+" "+subkey + " " +subval+" level:"+level.toString());
+                    console.log(reorderkeys[j-1]+" "+subkey + " " +subval+" level:"+level.toString());
                 }
+                // continue;
             }
             if (Object.prototype.toString.call(val) === '[object Array]') {
-                // console.log(key+ " " + level.toString());
-                recuIterfp(key,val, level+1);
+                console.log("start:"+key+ " " + level.toString());
+                recuIterfp(key,val, level+1,numNodeProcessed+1);
+                // console.log(" done");
+
             }
             else
             {
 
-                if(key!=":@")
-                {
-                    if(key=="#text") level-=1;
-                    console.log(prenodekey+" "+key+" "+val +" level:"+(level).toString());
+                // if(key!=":@")
+                // {
+                    if(key=="#text")
+                    { 
+                        level-=1;
+                        console.log(prenodekey+" "+key+" "+val +" level:"+(level).toString());
+                    }
 
-                }
+                // }
             }
 
 
         }
+
+
+
         //recuIterfp(tmpobj[Object.keys(tmpobj)[i]]);
         //}
         // else {
@@ -137,7 +218,8 @@ export function trykatex(input) {
     var mml = jObj[0].span[0].math[0].semantics;
 
     console.log(mml);
-    recuIterfp("semantics",mml,0);
+    // recuIterfp("semantics",mml,0,0);
+    recuObject("mrow",mml[0]["mrow"],0);
 
 
     // var dp = new DOMParser();
