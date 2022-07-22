@@ -24,7 +24,7 @@ class App {
         \\lim_{x\\to\\infty} sin(\\theta) \\vert_{-5}^{x17} \\rightarrow \
         \\sum_{n=1}^{\\infty} 2^{-n} = \\sqrt{ e^x} = a^5_m\
      \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}  = \
-       \\int_{a}^{b} f(x)dx =z+\\frac{\\vec{a^z}}{b^{sc}}*2 ");
+       \\int_{a}^{b} f(x)dx =z+\\frac{\\vec{a^z}}{b^{sc}}*9 ");
 
         //  var mathml=trykatex("2x + a =c^{iz \\pi} ");
         var mathdiv = document.createElement("div");

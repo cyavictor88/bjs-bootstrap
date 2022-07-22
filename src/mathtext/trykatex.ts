@@ -1,6 +1,7 @@
 import katex from "katex";
 import { XMLParser, XMLValidator, XMLBuilder } from "fast-xml-parser";
 import * as lodash from 'lodash';
+import {MathmlParser} from './mathmlParser';
 
 
 export function recuIterdp(node) {
@@ -15,70 +16,6 @@ export function recuIterdp(node) {
 
         }
         // console.log(node.childNodes[i].nodeName + ": " + node.childNodes[i].nodeValue );
-    }
-
-}
-export function recuArray(prenodeKey,curArr,level){
-
-    for(var i = 0; i < curArr.length; i++)
-    {
-        recuObject(prenodeKey,curArr[i],level);
-    }
-
-}
-
-export function recuObject(prenodeKey, curObj, level){
-
-    if(Object.prototype.toString.call(curObj) === '[object Array]')
-    {
-        recuArray(prenodeKey, curObj, level);
-        return;
-    }
-
-
-
-    // console.log(prenodeKey+" "+curObj+" level:"+level.toString());
-    // console.log(curObj);
-    // console.log(Object.keys(curObj));
-    let attriKey = ":@";
-    let contentKey = "#text";
-    var keys = Object.keys(curObj);
-    var reorderedkeys=[];
-    for (var j = 0; j < keys.length; j++) {
-        let key=keys[j];
-        if(!key.includes(attriKey)) reorderedkeys.push(key);
-        if(key!=contentKey) reorderedkeys.push(key);
-    }
-
-    if(lodash.includes(keys,contentKey))
-    {
-        console.log(prenodeKey+" "+contentKey + " " +curObj[contentKey]+" level:"+(level-1).toString());
-    }
-
-
-
-
-    for(var i = 0; i < keys.length; i++)
-    {
-        let key=keys[i];
-        let val = curObj[key];
-        if (Object.prototype.toString.call(val) === '[object Array]') {
-            console.log("start:"+key+ " " + level.toString());
-            if(lodash.includes(keys,attriKey))
-            {
-                for (var k = 0; k < Object.keys(curObj[attriKey]).length; k++) {
-        
-                    var subkey = Object.keys(curObj[attriKey])[k];
-                    var subval = curObj[attriKey][subkey];
-                    console.log(key+" "+subkey + " " +subval+" level:"+level.toString());
-                }
-        
-            }
-            recuObject(key,val, level+1);
-            // console.log(" done");
-
-        }
-
     }
 
 }
@@ -219,7 +156,15 @@ export function trykatex(input) {
 
     console.log(mml);
     // recuIterfp("semantics",mml,0,0);
-    recuObject("mrow",mml[0]["mrow"],0);
+
+    let mmp: MathmlParser.MMParser = new MathmlParser.MMParser(mml);
+    // MathmlParser.recuObject("mrow",mml,0,cuStringArr);
+    console.log("cuStringArr belowwwwwwwwwwwwwww\n");
+    console.log(mmp.parsedStringArr);
+    // cuStringArr.forEach(element => {
+    //     console.log(element);
+        
+    // });
 
 
     // var dp = new DOMParser();
