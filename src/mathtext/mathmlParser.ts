@@ -1,8 +1,18 @@
 import * as lodash from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 enum MEleType {
     Start = 0,
     Attris = 1,
     Text = 2,
+}
+
+
+enum MMType {
+    Table = 0,
+    Tr = 1,
+    Td = 2,
+    Overunder,
+
 }
 export interface MEle {
     node: string,
@@ -14,7 +24,7 @@ export interface MEle {
 
 export interface MAttriDet {
     name: string,
-    val: string,
+    val: any,
 }
 
 
@@ -29,51 +39,155 @@ export interface MTag {
     text?: string,
 };
 
+export interface MMFlatStruct {
+    lvl: number,
+    name: string,
+    text?: string,
+    attriArr?: MAttriDet[],
+    uuid?: string,
+    closeFor?: MMFlatStruct,
+    col?:number,
+    row?:number,
+    
+};
+
+
+
+
 
 
 export class MMParser {
-    public mathmlXml: [];
+    public mathmlXml: Object[];
     public parsedStringArr: string[];
     public grandMTagNode: MTag;
     public meleArr: MEle[];
+    public grandFlatArr: MMFlatStruct[];
+    public grandFlatArrWithClose:MMFlatStruct[];
+
+    
 
     constructor(mathmlXml: []) {
         this.meleArr = [];
-        this.grandMTagNode = { name: "dummy", children: [], lvl: -1 };
+        this.grandFlatArr = [];
+        this.grandFlatArrWithClose = [];
+        this.grandMTagNode = { name: "dummy", children:[], lvl:-1 };
         this.mathmlXml = mathmlXml;
         this.parsedStringArr = [];
-        this.recuObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
+
+        this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
+
         this.assembleGrandMTagNode();
         console.log(this.grandMTagNode);
 
-        this.iterAllnodes(this.grandMTagNode);
+        this.assembleGrandFlatArr(this.grandMTagNode);
+        console.log(this.grandFlatArr);
+
+        this.assembleGrandFlatWithCloseArr();
+        console.log(this.grandFlatArrWithClose);
+
+        this.addRowColAttriForTables();
+        console.log(this.grandFlatArrWithClose);
+
+
+    }
+    addRowColAttriForTables(){
+        let curTable:MMFlatStruct={name:"dummyTab",lvl:-1,col:1,row:1};
+        for (let i = 0;i < this.grandFlatArrWithClose.length; i+=1)
+        {
+            const ele=this.grandFlatArrWithClose[i];
+            if (ele.name=="mtable" && ele.closeFor==null)
+            {
+                curTable.col = (curTable.col/curTable.row | 0);
+                curTable=ele;
+                curTable.col=0;
+                curTable.row=0;
+            }
+            if (ele.name=="mtd" && ele.closeFor==null)
+            {
+                // curTable.attriArr.at(-2).val+=1;
+                curTable.col+=1;
+            }
+            if (ele.name=="mtr" && ele.closeFor==null)
+            {
+                curTable.row+=1;
+                // curTable.attriArr.at(-1).val+=1;
+            }
+        } 
+        curTable.col = (curTable.col/curTable.row | 0);
+    }
+    findLastOpenEleAtlvl(j:number):MMFlatStruct{
+
+        for (let i = this.grandFlatArrWithClose.length-1; i>=0 ; i-=1)
+        {
+            const ele=this.grandFlatArrWithClose[i];
+            if (ele.lvl==j && ele.closeFor==null)
+            {
+                return ele;
+            }
+        }
+
     }
 
-    iterAllnodes(curNode:MTag)
+
+    assembleGrandFlatWithCloseArr()
     {
+        let lastNode:MMFlatStruct={name:this.grandFlatArr[0].name, lvl:this.grandFlatArr[0].lvl };
+        this.grandFlatArr.push(lastNode);
+        let prevLvl=-1;
+        for (let i = 0; i < this.grandFlatArr.length; i++) {
+            const curEle = this.grandFlatArr[i];
+            if(curEle.lvl<=prevLvl)
+            {
+                let j=prevLvl;
+                while(j>=curEle.lvl)
+                {
+                    const lastOpenEleAtLvlj = this.findLastOpenEleAtlvl(j);   
+                    let eleThatClose : MMFlatStruct = {name:lastOpenEleAtLvlj.name,lvl:lastOpenEleAtLvlj.lvl,closeFor:lastOpenEleAtLvlj};
+                    this.grandFlatArrWithClose.push(eleThatClose);
+                    j-=1;
+                }
+            }
+            this.grandFlatArrWithClose.push(curEle);
+            prevLvl=curEle.lvl;
+        };
+        this.grandFlatArrWithClose.pop();
+    }
+
+    assembleGrandFlatArr(curNode:MTag)
+    {
+        var mmstruct : MMFlatStruct={uuid:uuidv4().toString(),lvl:curNode.lvl,name:curNode.name};
+
         let str = "lvl:"+curNode.lvl+" name:"+curNode.name;
         if(curNode.text!=null)
         {
             str+=" text:"+curNode.text;
+            mmstruct.text=curNode.text;
         }
-        console.log(str);
+        if(curNode.attriArr!=null)
+        {
+            str+=" attri:[";
+            curNode.attriArr.forEach(attri => {
+                str+="{"+attri.name+":"+attri.val+"}"
+            });
+            str+="]";
+            mmstruct.attriArr=curNode.attriArr;
+        }
+
+            console.log(str);
+            this.grandFlatArr.push(mmstruct);
 
             curNode.children.forEach(element => {
-                this.iterAllnodes(element);
+                this.assembleGrandFlatArr(element);
             });
-        
     }
 
 
-    traverseToCurLvl(targetLvl) {
-
+    traverseToCurLvlFromFirstNode(targetLvl) {
         var curlvl = -1;
         let curNode: MTag = this.grandMTagNode;
         let intoNewLvl = false;
         while (curlvl < targetLvl) {
             curlvl += 1;
-
-
             if (curNode.children.length > 0) {
                 curNode = curNode.children.at(-1);
             }
@@ -88,7 +202,7 @@ export class MMParser {
 
     assembleGrandMTagNode() {
         this.meleArr.forEach(ele => {
-            let atLvlNode = this.traverseToCurLvl(ele.lvl);
+            let atLvlNode = this.traverseToCurLvlFromFirstNode(ele.lvl);
             let traversedNode = atLvlNode.lastNode;
             let nextMoveintoNewLvl = atLvlNode.intoNewLvl;
             switch (ele.type) {
@@ -123,18 +237,18 @@ export class MMParser {
     // recuArray(prenodeKey, curArr, level, cuStringArr) {
 
     //     for (var i = 0; i < curArr.length; i++) {
-    //         this.recuObject(prenodeKey, curArr[i], level, cuStringArr);
+    //         this.assembleMEleArrByRecuOnObject(prenodeKey, curArr[i], level, cuStringArr);
     //     }
 
     // }
 
-    recuObject(prenodeKey, curObj, level, cuStringArr) {
+    assembleMEleArrByRecuOnObject(prenodeKey, curObj, level, cuStringArr) {
 
         if (Object.prototype.toString.call(curObj) === '[object Array]') {
             // recuArray(prenodeKey, curObj, level,cuStringArr);
             // return;
             for (var i = 0; i < curObj.length; i++) {
-                this.recuObject(prenodeKey, curObj[i], level, cuStringArr);
+                this.assembleMEleArrByRecuOnObject(prenodeKey, curObj[i], level, cuStringArr);
             }
         }
 
@@ -150,7 +264,7 @@ export class MMParser {
 
         if (lodash.includes(keys, textKey)) {
             // console.log(prenodeKey + " " + textKey + " " + curObj[textKey] + " level:" + (level - 1).toString());
-            // cuStringArr.push(prenodeKey + " " + textKey + " " + curObj[textKey] + " level:" + (level - 1).toString());
+            //cuStringArr.push(prenodeKey + " " + textKey + " " + curObj[textKey] + " level:" + (level - 1).toString());
             var tmpMText: MEle = { node: prenodeKey, lvl: level - 1, text: curObj[textKey], type: MEleType.Text };
             this.meleArr.push(tmpMText);
 
@@ -165,7 +279,7 @@ export class MMParser {
             let val = curObj[key];
             if (Object.prototype.toString.call(val) === '[object Array]') {
                 // console.log("start " + key + " " + level.toString());
-                cuStringArr.push("start " + key + " " + level.toString());
+                //cuStringArr.push("start " + key + " " + level.toString());
                 var tmpMEle: MEle = { node: key, lvl: level, type: MEleType.Start };
                 this.meleArr.push(tmpMEle);
 
@@ -178,7 +292,7 @@ export class MMParser {
                         var subkey = Object.keys(curObj[attriKey])[k];
                         var subval = curObj[attriKey][subkey];
                         // console.log(key + " " + subkey + " " + subval + " level " + level.toString());
-                        cuStringArr.push(key + " " + subkey + " " + subval + " level " + level.toString());
+                        //cuStringArr.push(key + " " + subkey + " " + subval + " level " + level.toString());
                         attriDets.push({ name: subkey.substring(2), val: subval })
                     }
 
@@ -186,7 +300,7 @@ export class MMParser {
                     this.meleArr.push(tmpMAttris);
 
                 }
-                this.recuObject(key, val, level + 1, cuStringArr);
+                this.assembleMEleArrByRecuOnObject(key, val, level + 1, cuStringArr);
 
             }
 
