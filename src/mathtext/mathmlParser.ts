@@ -85,12 +85,20 @@ export class MMParser {
         this.assembleGrandFlatWithCloseArr();
         console.log(this.grandFlatArrWithClose);
 
-        this.addRowColAttriForTables();
+        this.addRowColAttriForTablesInFlatWithCloseArr();
         console.log(this.grandFlatArrWithClose);
 
 
+        this.getGridLayoutFromFlatWithCloseArr();
+
+
     }
-    addRowColAttriForTables(){
+    getGridLayoutFromFlatWithCloseArr(){
+
+    };
+
+
+    addRowColAttriForTablesInFlatWithCloseArr(){
         let curTable:MMFlatStruct={name:"dummyTab",lvl:-1,col:1,row:1};
         for (let i = 0;i < this.grandFlatArrWithClose.length; i+=1)
         {
