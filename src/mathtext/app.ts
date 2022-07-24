@@ -1,6 +1,7 @@
 // import "@babylonjs/core/Debug/debugLayer";
 // import "@babylonjs/inspector";
 // import "@babylonjs/loaders/glTF";
+//above for inspector
 
 import { Engine } from "@babylonjs/core/Engines";
 import { Scene } from "@babylonjs/core/scene";
@@ -10,7 +11,9 @@ import { HemisphericLight } from "@babylonjs/core/Lights";
 import { Vector3, Color3 } from "@babylonjs/core/Maths";
 // import { Color3,Engine, Scene, Camera,ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, UniversalCamera,MultiMaterial } from "@babylonjs/core";
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { MathChar, MathString } from "./mathtext";
+
+import { MathText } from './mathtext';
+
 //import {tryjison} from "./tryjison";
 import { trykatex } from "./trykatex";
 import { showAxis } from "../geo/axis";
@@ -98,8 +101,14 @@ class App {
         // light2.includeOnlyWithLayerMask = 0x20000000;
 
 
-        let mathtxts = new MathString("∑∫πacatmeow--jklqr", scene, secondCamera.layerMask);
+        let mathtxts = new MathText.MathString("∑∫πacatmeow--jklqr", scene, secondCamera.layerMask);
         mathtxts.toMesh(this.mat);
+        mathtxts.drawSquare();
+
+
+
+
+
 
 
 

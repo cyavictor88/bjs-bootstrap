@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { BoundingBox, Material, Mesh, Scene, Vector3 } from "@babylonjs/core";
+import { BoundingBox, Material, Matrix, Mesh, Scene, Vector3, Vector4 } from "@babylonjs/core";
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import * as lodash from 'lodash';
 
@@ -7,7 +7,12 @@ import * as lodash from 'lodash';
 // var cjson = require('../ubuntu-r.json');
 var cjson = require('./assets/julia-r.json');
 
-import {frac} from './mathtextUtil/frac';
+import { frac } from './mathtextUtil/frac';
+
+
+
+
+
 
 
 type TMeshJson = {
@@ -19,7 +24,7 @@ type TMeshJson = {
 
 };
 
-export type TBbox ={
+export type TBbox = {
     minx: number;
     maxx: number;
     miny: number;
@@ -45,11 +50,11 @@ export class MathString {
     masklayer: number;
     // dashMesh: TMeshJson[];
 
-    constructor(mString: string, scene: Scene,masklayer:number) {
+    constructor(mString: string, scene: Scene, masklayer: number) {
 
 
         this.scene = scene;
-        this.masklayer= masklayer;
+        this.masklayer = masklayer;
         this.parentMesh = new BABYLON.Mesh("parent_" + mString, scene);
         // this.parentMesh.layerMask= 0x20000000;
         // this.parentMesh.setParent(camera);
@@ -57,10 +62,10 @@ export class MathString {
         // fontmaterial.alpha = 0.5;
         // fontmaterial.diffuseColor = new BABYLON.Color3(1.0, 1, 1);
         fontmaterial.backFaceCulling = false;
-        fontmaterial.emissiveColor = new BABYLON.Color3(0,1,0);
+        fontmaterial.emissiveColor = new BABYLON.Color3(0, 1, 0);
         this.mat = fontmaterial;
         this.mString = mString;
-        this.jsonMeshes=[];
+        this.jsonMeshes = [];
 
         for (let i = 0; i < mString.length; i++) {
             let key = "U+" + mString[i].charCodeAt(0).toString(16).padStart(4, "0")
@@ -86,7 +91,7 @@ export class MathString {
 
 
         let xoffset = 0;
-        for (let i = 0; i < this.jsonMeshes.length-3; i++) {
+        for (let i = 0; i < this.jsonMeshes.length - 3; i++) {
             let maxx = Number.MIN_SAFE_INTEGER;
             let maxy = Number.MIN_SAFE_INTEGER;
             let minx = Number.MAX_SAFE_INTEGER;
@@ -104,22 +109,22 @@ export class MathString {
         }
 
         frac(xoffset,
-            this.jsonMeshes[this.jsonMeshes.length-3].verts,
-            this.jsonMeshes[this.jsonMeshes.length-2].verts,
-            this.jsonMeshes[this.jsonMeshes.length-1].verts);
+            this.jsonMeshes[this.jsonMeshes.length - 3].verts,
+            this.jsonMeshes[this.jsonMeshes.length - 2].verts,
+            this.jsonMeshes[this.jsonMeshes.length - 1].verts);
 
 
 
 
     };
 
-    public extendX(verts: number[], bbox:TBbox){
+    public extendX(verts: number[], bbox: TBbox) {
         for (let j = 0; j < verts.length; j += 3) {
-            if (verts[j] == bbox.maxx) verts[j]*=4;
+            if (verts[j] == bbox.maxx) verts[j] *= 4;
         }
     };
 
-    public getBbox(verts: number[]):TBbox{
+    public getBbox(verts: number[]): TBbox {
         let maxx = Number.MIN_SAFE_INTEGER;
         let maxy = Number.MIN_SAFE_INTEGER;
         let minx = Number.MAX_SAFE_INTEGER;
@@ -130,7 +135,7 @@ export class MathString {
             if (verts[j + 1] > maxy) maxy = verts[j + 1];
             if (verts[j + 1] < miny) miny = verts[j + 1];
         }
-        let res :TBbox={
+        let res: TBbox = {
             minx: minx,
             maxx: maxx,
             miny: miny,
@@ -141,18 +146,18 @@ export class MathString {
 
     public toMesh(strmat: BABYLON.Material): void {
         for (let i = 0; i < this.jsonMeshes.length; i++) {
-            let customMesh = new BABYLON.Mesh("custom"+this.jsonMeshes[i].char, this.scene);
-            customMesh.layerMask= this.masklayer;
+            let customMesh = new BABYLON.Mesh("custom" + this.jsonMeshes[i].char, this.scene);
+            customMesh.layerMask = this.masklayer;
             let vertexData = new BABYLON.VertexData();
-            vertexData.positions=this.jsonMeshes[i].verts;
-            vertexData.indices=this.jsonMeshes[i].tris;
+            vertexData.positions = this.jsonMeshes[i].verts;
+            vertexData.indices = this.jsonMeshes[i].tris;
             vertexData.applyToMesh(customMesh);
             customMesh.material = this.mat;
 
             this.parentMesh.addChild(customMesh);
             continue;
-            let boxmesh = new BABYLON.Mesh("boxmesh"+this.jsonMeshes[i].char, this.scene);
-            boxmesh.layerMask= this.masklayer;
+            let boxmesh = new BABYLON.Mesh("boxmesh" + this.jsonMeshes[i].char, this.scene);
+            boxmesh.layerMask = this.masklayer;
             var VertexData2 = new BABYLON.VertexData();
             var max = customMesh.getBoundingInfo().boundingBox.maximum;
             var min = customMesh.getBoundingInfo().boundingBox.minimum;
@@ -161,16 +166,57 @@ export class MathString {
             VertexData2.applyToMesh(boxmesh);
             boxmesh.material = this.mat;
             this.parentMesh.addChild(boxmesh);
-    
-
-        }
 
 
-        
+        };
+
+
+
+
 
     };
 
 
+
+    public getSpatialTransArr(array:number[], trans:{x:number,y:number,z:number},scale:{x:number,y:number,z:number}):number[]{
+        let mat = Matrix.Identity();
+        mat.setRowFromFloats(0, scale.x, 0, 0, trans.x);
+        mat.setRowFromFloats(1, 0, scale.y, 0, trans.y);
+        mat.setRowFromFloats(2, 0, 0, scale.z, trans.z);
+        var transedPoses = [];
+        for (let i = 0; i < array.length; i += 3) {
+            let tmpmat = new Matrix();
+            tmpmat.setRow(0, new Vector4(array[i], array[i + 1], array[i + 2], 1));
+            tmpmat = tmpmat.transpose();
+            tmpmat = mat.multiply(tmpmat);
+            for (let j = 0; j < 3; j++)
+                transedPoses.push(tmpmat.getRow(j).asArray()[0]);
+        }
+        return transedPoses;
+    }
+
+    public drawSquare(): void {
+
+
+        let customMesh = new BABYLON.Mesh("abox", this.scene);
+        customMesh.layerMask = this.masklayer;
+        var positions = [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0];
+        var indices = [0, 1, 2, 3, 0, 2];
+        
+        let trans={x:-7,y:0,z:0};
+        let scale={x:2,y:0.5,z:0};
+        var transedPoses = this.getSpatialTransArr(positions,trans,scale);
+
+
+
+        var vertexData = new BABYLON.VertexData();
+        vertexData.positions = transedPoses;
+        vertexData.indices = indices;
+
+        vertexData.applyToMesh(customMesh);
+        customMesh.material = this.mat;
+
+    };
 };
 
 export class MathChar {
@@ -225,3 +271,7 @@ export class MathChar {
 
 
 };
+
+
+
+export * as MathText from './mathtext';
