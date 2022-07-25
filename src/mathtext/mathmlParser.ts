@@ -75,6 +75,7 @@ export interface LBlock {
     parent?: LBlock,
     children?: LBlock[],
     lvl?: number,
+
     scale: number,
     type: LBlockType,
     uuid: string,
@@ -142,7 +143,6 @@ export class MMParser {
 
     iterateGrandBlockTree(block: LBlock, pad: string) {
         if (block.children != null && block.children.length > 0) {
-            console.log(block.type.toString() + pad + " yrange:[" + block.miny0.toFixed(3) + "," + block.maxy1.toFixed(3) + "]");
 
             block.children.forEach((child, idx) => {
                 console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3) + "]");
@@ -219,13 +219,13 @@ export class MMParser {
         return [x0, y0];
     }
 
-    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, miny0:number,maxy1:number ): [number, number] {
+
+    getBlockEndForMTable(block: LBlock, bx0: number, by0: number, bscale: number, miny0: number, maxy1: number): [number, number] {
+
         let bx1 = 0;
         let by1 = 0;
         let properBx0 = bx0;
         let properBy0 = by0;
-
-
         if (block.children != null && block.children.length > 0) {
             block.children.forEach((child, idx) => {
                 bscale = bscale * this.getProperScale(block.type, idx);
@@ -235,11 +235,11 @@ export class MMParser {
                 child.scale = bscale;
 
                 child.miny0 = properBy0;
-                child.maxy1 = properBy0+bscale;
+                child.maxy1 = properBy0 + bscale;
 
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale,miny0,maxy1);
-                if(child.miny0<miny0) miny0=child.miny0;
-                if(child.maxy1>maxy1) maxy1=child.maxy1;
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1);
+                if (child.miny0 < miny0) miny0 = child.miny0;
+                if (child.maxy1 > maxy1) maxy1 = child.maxy1;
 
                 bx0 = bx1;
             });
@@ -248,6 +248,88 @@ export class MMParser {
 
             block.miny0 = miny0;
             block.maxy1 = maxy1;
+
+            return [bx1, by1];
+        }
+        else if (block.text != null) {
+            // console.log(block);
+            bx1 = bx0 + block.scale * block.text.toString().length;
+            by1 = by0 + block.scale * 1;
+            block.x1 = bx1;
+            block.y1 = by1;
+            if (by0 < miny0) block.miny0 = by0;
+            if (by1 > maxy1) block.maxy1 = by1;
+            return [bx1, by1];
+        }
+        else {
+            throw ('som ting wong');
+        }
+
+        // return [0,0];
+    }
+    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, miny0: number, maxy1: number): [number, number] {
+
+        if (block.type == LBlockType.mtable) {
+            let numCol=block["col"];
+            let numRow=block["row"];
+            console.log("mtable row:"+numRow.toString()+ " col:"+ numCol.toString());
+
+            const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1);
+            let maxRowYRange = y1-by0;
+            let maxRowXRange = 0;
+
+            let mtrminy=Number.MAX_SAFE_INTEGER;
+            function getTallestRowYrange(disBlock: LBlock) {
+                if (disBlock.children != null && disBlock.children.length > 0) {
+                    disBlock.children.forEach((child) => {
+                        if (child.type = LBlockType.mtr) {
+                            if (child.x1 -child.x0> maxRowXRange) maxRowXRange = child.x1 -child.x0;
+                            if(child.miny0<mtrminy)mtrminy=child.miny0;
+                        }
+                        else {
+                            getTallestRowYrange(child);
+                        }
+                    });
+                }
+                return;
+            }
+            getTallestRowYrange(block);
+            console.log("mtable x1:"+(bx0+maxRowXRange).toString()+ " y1:"+(by0+ maxRowYRange*numRow).toString());
+            block.x1 = bx0+maxRowXRange;
+            block.y1 = by0+ maxRowYRange*numRow;
+
+            if(block.y1>maxy1 )block.maxy1 = block.y1;
+            block.miny0 = mtrminy;
+            
+            return [bx0+maxRowXRange ,by0+ maxRowYRange*numRow];
+        };
+        let bx1 = 0;
+        let by1 = 0;
+        let properBx0 = bx0;
+        let properBy0 = by0;
+        if (block.children != null && block.children.length > 0) {
+            block.children.forEach((child, idx) => {
+                bscale = bscale * this.getProperScale(block.type, idx);
+                [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
+                child.x0 = properBx0;
+                child.y0 = properBy0;
+                child.scale = bscale;
+
+                child.miny0 = properBy0;
+                child.maxy1 = properBy0 + bscale;
+
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1);
+                if (child.miny0 < miny0) miny0 = child.miny0;
+                if (child.maxy1 > maxy1) maxy1 = child.maxy1;
+
+                bx0 = bx1;
+            });
+            block.x1 = bx1;
+            block.y1 = by1;
+
+            block.miny0 = miny0;
+            block.maxy1 = maxy1;
+
             return [bx1, by1];
         }
         else if (block.text != null) {
@@ -277,7 +359,7 @@ export class MMParser {
 
 
         // this.grandLBlockTree.y0 = 0;
-        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale,miny0,maxy1);
+        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale, miny0, maxy1);
 
     };
 

@@ -38,7 +38,8 @@ class App {
     //     \\lim_{x^{ab}} sin(\\theta) ");
 
 
-         var mathml=trykatex(" a_z = b^{c_{de}^{fg} \\pi} ");
+         var mathml=trykatex(" \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}");
+         //= a = b^{c_{de}^{fg} \\pi} ");
 
 
         var mathdiv = document.createElement("div");
