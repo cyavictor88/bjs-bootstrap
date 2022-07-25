@@ -1,5 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { BoundingBox, Material, Matrix, Mesh, Scene, Vector3, Vector4 } from "@babylonjs/core";
+import {  Color3 } from "@babylonjs/core/Maths";
+
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import * as lodash from 'lodash';
 
@@ -203,8 +205,8 @@ export class MathString {
         var positions = [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0];
         var indices = [0, 1, 2, 3, 0, 2];
         
-        let trans={x:-7,y:0,z:0};
-        let scale={x:2,y:0.5,z:0};
+        let trans={x:0,y:-0.3,z:0};
+        let scale={x:0.6,y:1.2,z:1};
         var transedPoses = this.getSpatialTransArr(positions,trans,scale);
 
 
@@ -214,7 +216,16 @@ export class MathString {
         vertexData.indices = indices;
 
         vertexData.applyToMesh(customMesh);
-        customMesh.material = this.mat;
+
+
+        let dummyMat = new StandardMaterial("vics", this.scene);
+
+        // dummyMat.backFaceCulling = false;
+        // dummyMat.emissiveColor = new BABYLON.Color3(0, 1, 0);
+        dummyMat.alpha = 0.7;
+        dummyMat.diffuseColor = new Color3(1, 1, 1);
+        dummyMat.backFaceCulling = false;
+        customMesh.material = dummyMat;
 
     };
 };

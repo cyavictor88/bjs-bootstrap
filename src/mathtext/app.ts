@@ -34,8 +34,11 @@ class App {
 
         //  var mathml=trykatex("2x + a =c^{iz \\pi} ");
 
-      var mathml=trykatex(" \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \\{ e = \\begin{bmatrix} 11 & 12 & 13 \\\\ 21 & 22 & 23 \\end{bmatrix} = \\sum_{n=1}^{\\infty} =  \
-        \\lim_{x^{ab}} sin(\\theta) ");
+    //   var mathml=trykatex(" \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \\{ e = \\begin{bmatrix} 11 & 12 & 13 \\\\ 21 & 22 & 23 \\end{bmatrix} = \\sum_{n=1}^{\\infty} =  \
+    //     \\lim_{x^{ab}} sin(\\theta) ");
+
+
+         var mathml=trykatex(" a_z = b^{c_{de}^{fg} \\pi} ");
 
 
         var mathdiv = document.createElement("div");

@@ -1,3 +1,4 @@
+import { BlackAndWhitePostProcess } from '@babylonjs/core';
 import * as lodash from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 enum MEleType {
@@ -76,7 +77,19 @@ export interface LBlock {
     lvl?: number,
     scale: number,
     type: LBlockType,
-    uuid:string,
+    uuid: string,
+
+    x0?: number,
+    y0?: number,
+    x1?: number,
+    y1?: number,
+
+
+    miny0?: number,
+    maxy1?: number,
+
+    // start?: number,
+    // end?: number,
 };
 
 
@@ -114,29 +127,188 @@ export class MMParser {
 
 
         this.turnGrandFlatArrToGrandLBlockTree();
-        this.addHeightToGrandLBlockTree();
+        this.addBlockStartEndToGRandBlockTree();
 
 
         console.log(this.grandLBlockTree);
+
+
+        this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
         // console.log(mathmlXml);
 
 
     }
 
-    addHeightToGrandLBlockTree(){
+    iterateGrandBlockTree(block: LBlock, pad: string) {
+        if (block.children != null && block.children.length > 0) {
+            console.log(block.type.toString() + pad + " yrange:[" + block.miny0.toFixed(3) + "," + block.maxy1.toFixed(3) + "]");
+
+            block.children.forEach((child, idx) => {
+                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3) + "]");
+                this.iterateGrandBlockTree(child, pad + " ");
+            });
+            console.log(" ");
+        }
+        else if (block.text != null) {
+
+            console.log(block.type.toString() + pad + " text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
+        }
+        else {
+            throw ('som ting wong');
+        }
+    }
+    // getBlockEnd(block: LBlock, bstart: number): number {
+    //     let bend = 0;
+    //     if (block.children != null && block.children.length > 0) {
+    //         block.children.forEach((child) => {
+    //             child.start = bstart;
+    //             bend = this.getBlockEnd(child, child.start );
+    //             bstart = bend;
+    //         });
+    //         block.end = bend;
+    //         return bend;
+    //     }
+    //     else if (block.text != null) {
+    //         // console.log(block);
+    //         bend = bstart + block.text.toString().length;
+    //         block.end = bend;
+    //         return bend;
+    //     }
+    //     else {
+    //         throw('som ting wong');
+    //         return bstart;
+    //     }
+    // }
+    // addBlockStartEndToGRandBlockTree() {
+
+    //     this.grandLBlockTree.start = 0;
+    //     this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.start);
+
+    // };
+    getProperScale(type: LBlockType, idx: number): number {
+        if (type === LBlockType.msub || type === LBlockType.msup || type === LBlockType.msubsup
+            || type === LBlockType.mover || type === LBlockType.munder || type === LBlockType.munderover) {
+            if (idx == 0 || idx > 1) return 1;
+            if (idx == 1) return 0.5;
+        }
+        return 1;
+    };
+
+    getProperX0Y0(block: LBlock, bx0: number, by0: number, bscale: number, blockChildIdx: number): [number, number] {
+        let x0 = bx0;
+        let y0 = by0;
+        let type = block.type;
+        let idx = blockChildIdx;
+        if (type === LBlockType.msup) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return [x0, y0 + 0.75 * block.children[0].scale];
+            else throw ("msup wrong");
+        }
+        if (type === LBlockType.msub) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return [x0, y0 - 0.25 * block.children[0].scale];
+            else throw ("msub wrong");
+        }
+        if (type === LBlockType.msubsup) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return [x0, y0 - 0.25 * block.children[0].scale];
+            if (idx == 2) return [block.children[1].x0, y0 + 0.75 * block.children[0].scale];
+            else throw ("msubsup wrong");
+        }
+        return [x0, y0];
+    }
+
+    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, miny0:number,maxy1:number ): [number, number] {
+        let bx1 = 0;
+        let by1 = 0;
+        let properBx0 = bx0;
+        let properBy0 = by0;
+
+
+        if (block.children != null && block.children.length > 0) {
+            block.children.forEach((child, idx) => {
+                bscale = bscale * this.getProperScale(block.type, idx);
+                [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
+                child.x0 = properBx0;
+                child.y0 = properBy0;
+                child.scale = bscale;
+
+                child.miny0 = properBy0;
+                child.maxy1 = properBy0+bscale;
+
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale,miny0,maxy1);
+                if(child.miny0<miny0) miny0=child.miny0;
+                if(child.maxy1>maxy1) maxy1=child.maxy1;
+
+                bx0 = bx1;
+            });
+            block.x1 = bx1;
+            block.y1 = by1;
+
+            block.miny0 = miny0;
+            block.maxy1 = maxy1;
+            return [bx1, by1];
+        }
+        else if (block.text != null) {
+            // console.log(block);
+            bx1 = bx0 + block.scale * block.text.toString().length;
+            by1 = by0 + block.scale * 1;
+            block.x1 = bx1;
+            block.y1 = by1;
+            if (by0 < miny0) block.miny0 = by0;
+            if (by1 > maxy1) block.maxy1 = by1;
+            return [bx1, by1];
+        }
+        else {
+            throw ('som ting wong');
+        }
+    }
+
+
+    addBlockStartEndToGRandBlockTree() {
+
+        this.grandLBlockTree.x0 = 0;
+        this.grandLBlockTree.y0 = 0;
+        this.grandLBlockTree.miny0 = Number.MAX_SAFE_INTEGER;
+        this.grandLBlockTree.maxy1 = Number.MIN_SAFE_INTEGER;
+        let miny0 = Number.MAX_SAFE_INTEGER;
+        let maxy1 = Number.MIN_SAFE_INTEGER;
+
+
+        // this.grandLBlockTree.y0 = 0;
+        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale,miny0,maxy1);
+
+    };
+
+
+    addBlockYEndToGrandBlockTree(block: LBlock) {
+        if (block.children != null && block.children.length > 0) {
+
+
+        }
+        else if (block.text != null) {
+            // console.log(block);
+
+        }
+        else {
+            throw ('som ting wong');
+        }
+    };
+
+    addHeightToGrandLBlockTree() {
 
     };
     turnGrandFlatArrToGrandLBlockTree() {
-        this.grandLBlockTree = { children: [], lvl: 0, scale: 1, type: LBlockType.mrow ,uuid:this.grandFlatArr[0].uuid};
+        this.grandLBlockTree = { children: [], lvl: 0, scale: 1, type: LBlockType.mrow, uuid: this.grandFlatArr[0].uuid };
         let parentOfnewLBlockArr = [this.grandLBlockTree];
 
-        for (let i = 1; i < this.grandFlatArr.length ; i += 1) {
+        for (let i = 1; i < this.grandFlatArr.length; i += 1) {
             const ele = this.grandFlatArr[i];
 
             if (ele.closeFor == null) {
                 let parentOfnewLBlock = parentOfnewLBlockArr[ele.lvl - 1];
-                let newLBlock = { parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name] ,uuid:ele.uuid};
+                let newLBlock = { parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name], uuid: ele.uuid };
                 switch (ele.name) {
                     case LBlockType.mo:
                         newLBlock["text"] = ele.text;
@@ -163,8 +335,8 @@ export class MMParser {
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mtable:
-                        newLBlock["col"]=ele.col;
-                        newLBlock["row"]=ele.row;
+                        newLBlock["col"] = ele.col;
+                        newLBlock["row"] = ele.row;
                     default:
                         newLBlock["children"] = [];
                         if (ele.lvl == parentOfnewLBlockArr.length) parentOfnewLBlockArr.push(newLBlock);
@@ -181,30 +353,30 @@ export class MMParser {
         let curTable: MMFlatStruct = { name: "dummyTab", lvl: -1, col: 1, row: 1 };
         for (let i = 0; i < this.grandFlatArr.length; i += 1) {
             const ele = this.grandFlatArr[i];
-            if (ele.name == "mtable" ) {
+            if (ele.name == "mtable") {
                 curTable.col = (curTable.col / curTable.row | 0);
                 curTable = ele;
                 curTable.col = 0;
                 curTable.row = 0;
             }
-            if (ele.name == "mtd" ) {
+            if (ele.name == "mtd") {
                 // curTable.attriArr.at(-2).val+=1;
                 curTable.col += 1;
             }
-            if (ele.name == "mtr" ) {
+            if (ele.name == "mtr") {
                 curTable.row += 1;
                 // curTable.attriArr.at(-1).val+=1;
             }
         }
         curTable.col = (curTable.col / curTable.row | 0);
 
-        
+
         for (let i = 0; i < this.grandFlatArr.length; i += 1) {
             const ele = this.grandFlatArr[i];
-            if (ele.name == "mtable" ) {
-                curTable=lodash.find(this.grandFlatArrWithClose, function(o) { return o.uuid == ele.uuid; });
-                curTable.col=ele.col;
-                curTable.row=ele.row;
+            if (ele.name == "mtable") {
+                curTable = lodash.find(this.grandFlatArrWithClose, function (o) { return o.uuid == ele.uuid; });
+                curTable.col = ele.col;
+                curTable.row = ele.row;
             }
 
         }
@@ -228,7 +400,7 @@ export class MMParser {
         // }
         // curTable.col = (curTable.col / curTable.row | 0);
 
-        
+
         // for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
         //     const ele = this.grandFlatArrWithClose[i];
         //     if (ele.name == "mtable" && ele.closeFor == null) {
