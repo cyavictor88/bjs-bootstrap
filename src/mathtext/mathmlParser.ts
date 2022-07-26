@@ -253,7 +253,9 @@ export class MMParser {
         }
         else if (block.text != null) {
             // console.log(block);
-            bx1 = bx0 + block.scale * block.text.toString().length;
+            let spacing=0;
+            // if(block.parent)
+            bx1 = bx0 + block.scale * (spacing+block.text.toString().length);
             by1 = by0 + block.scale * 1;
             block.x1 = bx1;
             block.y1 = by1;
@@ -279,12 +281,14 @@ export class MMParser {
             let maxRowXRange = 0;
 
             let mtrminy=Number.MAX_SAFE_INTEGER;
+            let mtrmaxy=Number.MIN_SAFE_INTEGER;
             function getTallestRowYrange(disBlock: LBlock) {
                 if (disBlock.children != null && disBlock.children.length > 0) {
                     disBlock.children.forEach((child) => {
                         if (child.type = LBlockType.mtr) {
                             if (child.x1 -child.x0> maxRowXRange) maxRowXRange = child.x1 -child.x0;
                             if(child.miny0<mtrminy)mtrminy=child.miny0;
+                            if(child.maxy1>mtrmaxy)mtrmaxy=child.maxy1;
                         }
                         else {
                             getTallestRowYrange(child);
@@ -299,7 +303,9 @@ export class MMParser {
             block.y1 = by0+ maxRowYRange*numRow;
 
             if(block.y1>maxy1 )block.maxy1 = block.y1;
+            // if(block.y1>maxy1 )block.maxy1 = block.y1;
             block.miny0 = mtrminy;
+            block.maxy1 = mtrmaxy;
             
             return [bx0+maxRowXRange ,by0+ maxRowYRange*numRow];
         };
@@ -444,9 +450,14 @@ export class MMParser {
             if (ele.name == "mtd") {
                 // curTable.attriArr.at(-2).val+=1;
                 curTable.col += 1;
+
+                let spaceBetweenCol:MMFlatStruct ={name:"mi",lvl:ele.lvl+1,text:" ",uuid:uuidv4().toString()};
+                this.grandFlatArr.splice(i+1, 0, spaceBetweenCol);
+                i+=1;
             }
             if (ele.name == "mtr") {
                 curTable.row += 1;
+
                 // curTable.attriArr.at(-1).val+=1;
             }
         }

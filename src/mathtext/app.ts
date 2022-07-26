@@ -38,7 +38,7 @@ class App {
     //     \\lim_{x^{ab}} sin(\\theta) ");
 
 
-         var mathml=trykatex(" \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}");
+         var mathml=trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
          //= a = b^{c_{de}^{fg} \\pi} ");
 
 
