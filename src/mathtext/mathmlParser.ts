@@ -186,7 +186,8 @@ export class MMParser {
         if (block.children != null && block.children.length > 0) {
 
             block.children.forEach((child, idx) => {
-                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3) + "]");
+                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3) 
+                  + " xrange:[" + child.minx0.toFixed(3) + "," + child.maxx1.toFixed(3) + "]");
                 this.iterateGrandBlockTree(child, pad + " ");
             });
             console.log(" ");
@@ -266,15 +267,16 @@ export class MMParser {
         }
         if (type === LBlockType.munderover) {
             if (idx == 0) return [x0, y0];
-            if (idx == 1) return [block.children[0].x0+0*block.scale, y0 - .75 * block.children[0].scale];
-            if (idx == 2) return [block.children[1].x0+0*block.scale, y0 + .9 * block.children[0].scale];
+            if (idx == 1) return [block.children[0].x0+0.5*block.scale, y0 - .75 * block.children[0].scale];
+            if (idx == 2) return [block.children[0].x0+0.5*block.scale, y0 + .9 * block.children[0].scale];
             else throw ("msubsup wrong");
         }
         return [x0, y0];
     }
 
 
-    getBlockEndForMTable(block: LBlock, bx0: number, by0: number, bscale: number, miny0: number, maxy1: number): [number, number] {
+    getBlockEndForMTable(block: LBlock, bx0: number, by0: number, bscale: number, 
+        miny0: number, maxy1: number,minx0: number, maxx1: number): [number, number] {
 
         let bx1 = 0;
         let by1 = 0;
@@ -291,11 +293,16 @@ export class MMParser {
                 child.miny0 = properBy0;
                 child.maxy1 = properBy0 + bscale;
 
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1);
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, 
+                    miny0, maxy1,minx0, maxx1);
+                    
                 if (child.miny0 < miny0) miny0 = child.miny0;
                 if (child.maxy1 > maxy1) maxy1 = child.maxy1;
+                if (child.minx0 < minx0) minx0 = child.minx0;
+                if (child.maxx1 > maxx1) maxx1 = child.maxx1;
 
                 bx0 = bx1;
+                bx0 = maxx1;
                 // if(bx0<bx1) bx0 = bx1;
 
             });
@@ -305,6 +312,8 @@ export class MMParser {
             block.miny0 = miny0;
             block.maxy1 = maxy1;
 
+            block.minx0 = minx0;
+            block.maxx1 = maxx1;
             return [bx1, by1];
         }
         else if (block.text != null) {
@@ -317,6 +326,8 @@ export class MMParser {
             block.y1 = by1;
             if (by0 < miny0) block.miny0 = by0;
             if (by1 > maxy1) block.maxy1 = by1;
+            if (bx0 < minx0) block.minx0 = bx0;
+            if (bx1 > maxx1) block.maxx1 = bx1;
             return [bx1, by1];
         }
         else {
@@ -325,14 +336,15 @@ export class MMParser {
 
         // return [0,0];
     }
-    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, miny0: number, maxy1: number): [number, number] {
+    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, 
+        miny0: number, maxy1: number, minx0:number,maxx1:number): [number, number] {
 
         if (block.type == LBlockType.mtable) {
             let numCol=block["col"];
             let numRow=block["row"];
             console.log("mtable row:"+numRow.toString()+ " col:"+ numCol.toString());
 
-            const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1);
+            const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1,minx0,maxx1);
             let maxRowYRange = y1-by0;
             let maxRowXRange = 0;
 
@@ -386,12 +398,13 @@ export class MMParser {
 
 
 
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1);
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1,minx0,maxx1);
                 if (child.miny0 < miny0) miny0 = child.miny0;
                 if (child.maxy1 > maxy1) maxy1 = child.maxy1;
-                // if (child.minx0 < minx0) minx0 = child.minx0;
-                // if (child.maxx1 > maxx1) maxx1 = child.maxx1;
+                if (child.minx0 < minx0) minx0 = child.minx0;
+                if (child.maxx1 > maxx1) maxx1 = child.maxx1;
                 bx0 = bx1;
+                bx0 = maxx1;
                 
             });
 
@@ -403,7 +416,8 @@ export class MMParser {
 
             block.miny0 = miny0;
             block.maxy1 = maxy1;
-
+            block.minx0 = minx0;
+            block.maxx1 = maxx1;
             return [bx1, by1];
         }
         else if (block.text != null) {
@@ -414,6 +428,8 @@ export class MMParser {
             block.y1 = by1;
             if (by0 < miny0) block.miny0 = by0;
             if (by1 > maxy1) block.maxy1 = by1;
+            if (bx0 < minx0) block.minx0 = bx0;
+            if (bx1 > maxx1) block.maxx1 = bx1;
             return [bx1, by1];
         }
         else {
@@ -427,13 +443,17 @@ export class MMParser {
         this.grandLBlockTree.x0 = 0;
         this.grandLBlockTree.y0 = 0;
         this.grandLBlockTree.miny0 = Number.MAX_SAFE_INTEGER;
+        this.grandLBlockTree.minx0 = Number.MAX_SAFE_INTEGER;
         this.grandLBlockTree.maxy1 = Number.MIN_SAFE_INTEGER;
+        this.grandLBlockTree.maxx1 = Number.MIN_SAFE_INTEGER;
         let miny0 = Number.MAX_SAFE_INTEGER;
+        let minx0 = Number.MAX_SAFE_INTEGER;
         let maxy1 = Number.MIN_SAFE_INTEGER;
+        let maxx1 = Number.MIN_SAFE_INTEGER;
 
 
         // this.grandLBlockTree.y0 = 0;
-        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale, miny0, maxy1);
+        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale, miny0, maxy1 , minx0,maxx1);
 
     };
 

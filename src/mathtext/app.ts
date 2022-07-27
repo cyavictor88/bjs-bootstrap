@@ -105,7 +105,7 @@ class App {
 
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
         
-         var [mathml,mmp]=trykatex("\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88a =c_{iz \\pi} ");
+         var [mathml,mmp]=trykatex("\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
         //  var [mathml,mmp]=trykatex("HHHHHHHH");
         
         //= a = b^{c_{de}^{fg} \\pi} ");
