@@ -23,40 +23,21 @@ class App {
     public mat: StandardMaterial;
     public sphere: Mesh;
     constructor() {
-  
-
-        // var mathml = trykatex(" \\{ e \\in E \\} = f(x) \\leq \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \
-        // \\lim_{x\\to\\infty} sin(\\theta) \\vert_{-5}^{x17} \\rightarrow \
-        // \\sum_{n=1}^{\\infty} 2^{-n} = \
-        // \\sqrt{ e^x} = a^5_m\
-        // \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}  = \
-        // \\int_{a}^{b} f(x)dx =z+\\frac{\\vec{a^z}}{b^{sc}}*9 x+\\cancel{5y}=0");
-
-        //  var mathml=trykatex("2x + a =c^{iz \\pi} ");
-
-    //   var mathml=trykatex(" \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \\{ e = \\begin{bmatrix} 11 & 12 & 13 \\\\ 21 & 22 & 23 \\end{bmatrix} = \\sum_{n=1}^{\\infty} =  \
-    //     \\lim_{x^{ab}} sin(\\theta) ");
-
-
-         var mathml=trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
-         //= a = b^{c_{de}^{fg} \\pi} ");
-
-
-        var mathdiv = document.createElement("div");
-        mathdiv.innerHTML = mathml;
-
-        // tryjison();
-
-        // create the canvas html element and attach it to the webpage
         var canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
-        document.body.appendChild(mathdiv);
 
         var engine = new Engine(canvas, true);
         var scene = new Scene(engine);
+
+
+
+        // tryjison();
+
+        // create the canvas html element and attach it to the webpage
+
         this.mat = new StandardMaterial("vicm", scene);
         this.mat.alpha = 1;
         this.mat.diffuseColor = new Color3(1.0, 0.2, 0.7);
@@ -105,11 +86,34 @@ class App {
         // light2.includeOnlyWithLayerMask = 0x20000000;
 
 
-        let mathtxts = new MathText.MathString("∑∫πacatmeow--jklqr", scene, secondCamera.layerMask);
-        mathtxts.toMesh(this.mat);
-        mathtxts.drawSquare();
+        // let mathtxts = new MathText.MathString("2∑∫πacatmeow--jklqr", scene, secondCamera.layerMask);
+        // mathtxts.toMesh(this.mat);
+        // mathtxts.drawSquare();
+
+        // var mathml = trykatex(" \\{ e \\in E \\} = f(x) \\leq \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \
+        // \\lim_{x\\to\\infty} sin(\\theta) \\vert_{-5}^{x17} \\rightarrow \
+        // \\sum_{n=1}^{\\infty} 2^{-n} = \
+        // \\sqrt{ e^x} = a^5_m\
+        // \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}  = \
+        // \\int_{a}^{b} f(x)dx =z+\\frac{\\vec{a^z}}{b^{sc}}*9 x+\\cancel{5y}=0");
+
+        //  var mathml=trykatex("2x + a =c^{iz \\pi} ");
+
+        //   var mathml=trykatex(" \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x < 5 \\\\ \\textrm{false,} & \\textrm{otherwise} \\end{cases} = \\{ e = \\begin{bmatrix} 11 & 12 & 13 \\\\ 21 & 22 & 23 \\end{bmatrix} = \\sum_{n=1}^{\\infty} =  \
+        //     \\lim_{x^{ab}} sin(\\theta) ");
 
 
+        // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
+        
+         var [mathml,mmp]=trykatex("\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88a =c_{iz \\pi} ");
+        //  var [mathml,mmp]=trykatex("HHHHHHHH");
+        
+        //= a = b^{c_{de}^{fg} \\pi} ");
+       mmp.putinScene(mmp.grandLBlockTree,scene, secondCamera.layerMask);
+
+        var mathdiv = document.createElement("div");
+        mathdiv.innerHTML = mathml;
+        document.body.appendChild(mathdiv);
 
 
 

@@ -1,6 +1,9 @@
-import { BlackAndWhitePostProcess } from '@babylonjs/core';
+import { Scene } from '@babylonjs/core/scene';
 import * as lodash from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
+
+import { MathMlStringMesh } from './mathml2mesh';
+
 enum MEleType {
     Start = 0,
     Attris = 1,
@@ -89,6 +92,8 @@ export interface LBlock {
     miny0?: number,
     maxy1?: number,
 
+    minx0?: number,
+    maxx1?: number,
     // start?: number,
     // end?: number,
 };
@@ -102,6 +107,7 @@ export class MMParser {
     public grandFlatArr: MMFlatStruct[];
     public grandFlatArrWithClose: MMFlatStruct[];
     public grandLBlockTree: LBlock;
+
 
 
 
@@ -124,7 +130,8 @@ export class MMParser {
         this.assembleGrandFlatWithCloseArr();
 
         this.addRowColAttriForTablesInFlatArrs();
-        console.log(this.grandFlatArrWithClose);
+        // console.log(this.grandFlatArrWithClose);
+        console.log(this.grandFlatArr);
 
 
         this.turnGrandFlatArrToGrandLBlockTree();
@@ -137,6 +144,40 @@ export class MMParser {
         this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
         // console.log(mathmlXml);
+
+
+    }
+
+    putinScene(block: LBlock,scene:Scene,layerMask:number, ){
+        if (block.children != null && block.children.length > 0) {
+
+            block.children.forEach((child, idx) => {
+                this.putinScene(child,scene,layerMask);
+            });
+        }
+        else if (block.text != null) {
+            // console.log(block.text.toString());
+            // console.log(block.text.toString().length );
+            console.log(block.type.toString() + " text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
+
+            let xinterval = (block.x1-block.x0)/block.text.toString().length;
+            for (let i = 0; i < block.text.toString().length; i++) {
+                const char = block.text.toString()[i];
+                let box={x0:  (block.x0+i*xinterval)*0.6 ,x1:(block.x0+(i+1)*xinterval)*0.6 ,y0:block.y0,y1:block.y1};
+                let mathtxts = new MathMlStringMesh(char , scene, layerMask,box, block.scale);
+                mathtxts.toTransedMesh();
+                
+            }
+        
+
+
+
+            // let mathtxts = new MathText.MathString(text, scene, layerMask);
+        }
+        else {
+            throw ('som ting wong');
+        }
+        
 
 
     }
@@ -187,10 +228,17 @@ export class MMParser {
 
     // };
     getProperScale(type: LBlockType, idx: number): number {
-        if (type === LBlockType.msub || type === LBlockType.msup || type === LBlockType.msubsup
-            || type === LBlockType.mover || type === LBlockType.munder || type === LBlockType.munderover) {
-            if (idx == 0 || idx > 1) return 1;
+        if (type === LBlockType.msub || type === LBlockType.msup || 
+            type === LBlockType.mover || type === LBlockType.munder ) {
+            if (idx == 0 ) return 1;
             if (idx == 1) return 0.5;
+        }
+
+        if(type === LBlockType.msubsup || type === LBlockType.munderover)
+        {
+            if (idx == 0 ) return 1;
+            if (idx == 1) return 0.5;
+            if (idx == 2) return 1;
         }
         return 1;
     };
@@ -214,6 +262,12 @@ export class MMParser {
             if (idx == 0) return [x0, y0];
             if (idx == 1) return [x0, y0 - 0.25 * block.children[0].scale];
             if (idx == 2) return [block.children[1].x0, y0 + 0.75 * block.children[0].scale];
+            else throw ("msubsup wrong");
+        }
+        if (type === LBlockType.munderover) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return [block.children[0].x0+0*block.scale, y0 - .75 * block.children[0].scale];
+            if (idx == 2) return [block.children[1].x0+0*block.scale, y0 + .9 * block.children[0].scale];
             else throw ("msubsup wrong");
         }
         return [x0, y0];
@@ -242,6 +296,8 @@ export class MMParser {
                 if (child.maxy1 > maxy1) maxy1 = child.maxy1;
 
                 bx0 = bx1;
+                // if(bx0<bx1) bx0 = bx1;
+
             });
             block.x1 = bx1;
             block.y1 = by1;
@@ -314,6 +370,7 @@ export class MMParser {
         let properBx0 = bx0;
         let properBy0 = by0;
         if (block.children != null && block.children.length > 0) {
+
             block.children.forEach((child, idx) => {
                 bscale = bscale * this.getProperScale(block.type, idx);
                 [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
@@ -324,13 +381,24 @@ export class MMParser {
                 child.miny0 = properBy0;
                 child.maxy1 = properBy0 + bscale;
 
+                child.minx0 = properBx0;
+                child.maxx1 = properBx0 + bscale;
+
+
+
                 [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1);
                 if (child.miny0 < miny0) miny0 = child.miny0;
                 if (child.maxy1 > maxy1) maxy1 = child.maxy1;
-
+                // if (child.minx0 < minx0) minx0 = child.minx0;
+                // if (child.maxx1 > maxx1) maxx1 = child.maxx1;
                 bx0 = bx1;
+                
             });
+
+
             block.x1 = bx1;
+            
+            
             block.y1 = by1;
 
             block.miny0 = miny0;

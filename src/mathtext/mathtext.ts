@@ -93,7 +93,7 @@ export class MathString {
 
 
         let xoffset = 0;
-        for (let i = 0; i < this.jsonMeshes.length - 3; i++) {
+        for (let i = 0; i < this.jsonMeshes.length-3 ; i++) {
             let maxx = Number.MIN_SAFE_INTEGER;
             let maxy = Number.MIN_SAFE_INTEGER;
             let minx = Number.MAX_SAFE_INTEGER;
@@ -180,15 +180,15 @@ export class MathString {
 
 
 
-    public getSpatialTransArr(array:number[], trans:{x:number,y:number,z:number},scale:{x:number,y:number,z:number}):number[]{
+    public getSpatialTransArr(posArray:number[], trans:{x:number,y:number,z:number},scale:{x:number,y:number,z:number}):number[]{
         let mat = Matrix.Identity();
         mat.setRowFromFloats(0, scale.x, 0, 0, trans.x);
         mat.setRowFromFloats(1, 0, scale.y, 0, trans.y);
         mat.setRowFromFloats(2, 0, 0, scale.z, trans.z);
         var transedPoses = [];
-        for (let i = 0; i < array.length; i += 3) {
+        for (let i = 0; i < posArray.length; i += 3) {
             let tmpmat = new Matrix();
-            tmpmat.setRow(0, new Vector4(array[i], array[i + 1], array[i + 2], 1));
+            tmpmat.setRow(0, new Vector4(posArray[i], posArray[i + 1], posArray[i + 2], 1));
             tmpmat = tmpmat.transpose();
             tmpmat = mat.multiply(tmpmat);
             for (let j = 0; j < 3; j++)
@@ -197,6 +197,39 @@ export class MathString {
         return transedPoses;
     }
 
+
+
+    public toTransedMesh(newxs:{x0:number,x1:number}, newys:{y0:number,y1:number} )
+    {
+        let trans = {x:newxs.x0, y:newys.y0 -0.3 , z:0};
+        let scale = {x:(newxs.x1-newxs.x0)*0.6, y:(newys.y1-newys.y0)*1.2  , z:1};
+            for (let i = 0; i < this.jsonMeshes.length; i++) {
+                let customMesh = new BABYLON.Mesh("custom" + this.jsonMeshes[i].char, this.scene);
+                customMesh.layerMask = this.masklayer;
+                let vertexData = new BABYLON.VertexData();
+
+                let newTransedPos = this.getSpatialTransArr(this.jsonMeshes[i].verts,trans,scale);
+
+
+                vertexData.positions = newTransedPos;
+                vertexData.indices = this.jsonMeshes[i].tris;
+                vertexData.applyToMesh(customMesh);
+                customMesh.material = this.mat;
+    
+                this.parentMesh.addChild(customMesh);
+
+    
+    
+            };
+    
+    
+    
+    
+    
+    
+    }
+
+  
     public drawSquare(): void {
 
 

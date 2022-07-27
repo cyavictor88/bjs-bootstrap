@@ -67,7 +67,7 @@ export function trykatex(input) {
     // console.log(xmlDoc);
 
     // recuIterdp(xmlDoc);
-    return html;
+    return [html,mmp];
 
 
 
