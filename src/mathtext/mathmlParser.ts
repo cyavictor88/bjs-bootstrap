@@ -148,11 +148,11 @@ export class MMParser {
 
     }
 
-    putinScene(block: LBlock,scene:Scene,layerMask:number, ){
+    putinScene(block: LBlock, scene: Scene, layerMask: number,) {
         if (block.children != null && block.children.length > 0) {
 
             block.children.forEach((child, idx) => {
-                this.putinScene(child,scene,layerMask);
+                this.putinScene(child, scene, layerMask);
             });
         }
         else if (block.text != null) {
@@ -160,15 +160,15 @@ export class MMParser {
             // console.log(block.text.toString().length );
             console.log(block.type.toString() + " text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
 
-            let xinterval = (block.x1-block.x0)/block.text.toString().length;
+            let xinterval = (block.x1 - block.x0) / block.text.toString().length;
             for (let i = 0; i < block.text.toString().length; i++) {
                 const char = block.text.toString()[i];
-                let box={x0:  (block.x0+i*xinterval)*0.6 ,x1:(block.x0+(i+1)*xinterval)*0.6 ,y0:block.y0,y1:block.y1};
-                let mathtxts = new MathMlStringMesh(char , scene, layerMask,box, block.scale);
+                let box = { x0: (block.x0 + i * xinterval) * 0.6, x1: (block.x0 + (i + 1) * xinterval) * 0.6, y0: block.y0, y1: block.y1 };
+                let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, block.scale);
                 mathtxts.toTransedMesh();
-                
+
             }
-        
+
 
 
 
@@ -177,7 +177,7 @@ export class MMParser {
         else {
             throw ('som ting wong');
         }
-        
+
 
 
     }
@@ -186,8 +186,8 @@ export class MMParser {
         if (block.children != null && block.children.length > 0) {
 
             block.children.forEach((child, idx) => {
-                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3) 
-                  + " xrange:[" + child.minx0.toFixed(3) + "," + child.maxx1.toFixed(3) + "]");
+                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3)
+                    + " xrange:[" + child.minx0.toFixed(3) + "," + child.maxx1.toFixed(3) + "]");
                 this.iterateGrandBlockTree(child, pad + " ");
             });
             console.log(" ");
@@ -229,16 +229,17 @@ export class MMParser {
 
     // };
     getProperScale(type: LBlockType, idx: number): number {
-        if (type === LBlockType.msub || type === LBlockType.msup || 
-            type === LBlockType.mover || type === LBlockType.munder ) {
-            if (idx == 0 ) return 1;
-            if (idx == 1) return 0.5;
+        let shrinkScale=0.75
+
+        if (type === LBlockType.msub || type === LBlockType.msup ||
+            type === LBlockType.mover || type === LBlockType.munder) {
+            if (idx == 0) return 1;
+            if (idx == 1) return shrinkScale;
         }
 
-        if(type === LBlockType.msubsup || type === LBlockType.munderover)
-        {
-            if (idx == 0 ) return 1;
-            if (idx == 1) return 0.5;
+        if (type === LBlockType.msubsup || type === LBlockType.munderover) {
+            if (idx == 0) return 1;
+            if (idx == 1) return shrinkScale;
             if (idx == 2) return 1;
         }
         return 1;
@@ -267,122 +268,106 @@ export class MMParser {
         }
         if (type === LBlockType.munderover) {
             if (idx == 0) return [x0, y0];
-            if (idx == 1) return [block.children[0].x0+0.5*block.scale, y0 - .75 * block.children[0].scale];
-            if (idx == 2) return [block.children[0].x0+0.5*block.scale, y0 + .9 * block.children[0].scale];
+            if (idx == 1) return [block.children[0].x0 , y0 - .75 * block.children[0].scale];
+            if (idx == 2) return [block.children[0].x0 , y0 + .9 * block.children[0].scale];
+            else throw ("msubsup wrong");
+        }
+        if (type === LBlockType.mover) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return [block.children[0].x0 + 0.25 * block.scale, y0 + .5 * block.children[0].scale];
+            else throw ("msubsup wrong");
+        }
+        if (type === LBlockType.munder) {
+            if (idx == 0) return [x0, y0];
+            if (idx == 1) return  [block.children[0].x0 , y0 - .75 * block.children[0].scale];
             else throw ("msubsup wrong");
         }
         return [x0, y0];
     }
 
 
-    getBlockEndForMTable(block: LBlock, bx0: number, by0: number, bscale: number, 
-        miny0: number, maxy1: number,minx0: number, maxx1: number): [number, number] {
+    // getBlockEndForMTable(block: LBlock, bx0: number, by0: number, bscale: number,
+    //     miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {
+
+    //     let bx1 = 0;
+    //     let by1 = 0;
+    //     let properBx0 = bx0;
+    //     let properBy0 = by0;
+    //     if (block.children != null && block.children.length > 0) {
+    //         block.children.forEach((child, idx) => {
+    //             bscale = bscale * this.getProperScale(block.type, idx);
+    //             [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
+    //             child.x0 = properBx0;
+    //             child.y0 = properBy0;
+    //             child.scale = bscale;
+
+    //             child.miny0 = properBy0;
+    //             child.maxy1 = properBy0 + bscale;
+
+    //             [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale,
+    //                 miny0, maxy1, minx0, maxx1);
+
+    //             if (child.miny0 < miny0) miny0 = child.miny0;
+    //             if (child.maxy1 > maxy1) maxy1 = child.maxy1;
+    //             if (child.minx0 < minx0) minx0 = child.minx0;
+    //             if (child.maxx1 > maxx1) maxx1 = child.maxx1;
+
+    //             bx0 = bx1;
+    //             bx0 = maxx1;
+    //             // if(bx0<bx1) bx0 = bx1;
+
+    //         });
+    //         block.x1 = bx1;
+    //         block.y1 = by1;
+
+    //         block.miny0 = miny0;
+    //         block.maxy1 = maxy1;
+
+    //         block.minx0 = minx0;
+    //         block.maxx1 = maxx1;
+    //         return [bx1, by1];
+    //     }
+    //     else if (block.text != null) {
+    //         // console.log(block);
+    //         let spacing = 0;
+    //         // if(block.parent)
+    //         bx1 = bx0 + block.scale * (spacing + block.text.toString().length);
+    //         by1 = by0 + block.scale * 1;
+    //         block.x1 = bx1;
+    //         block.y1 = by1;
+    //         if (by0 < miny0) block.miny0 = by0;
+    //         if (by1 > maxy1) block.maxy1 = by1;
+    //         if (bx0 < minx0) block.minx0 = bx0;
+    //         if (bx1 > maxx1) block.maxx1 = bx1;
+    //         return [bx1, by1];
+    //     }
+    //     else {
+    //         throw ('som ting wong');
+    //     }
+
+    //     // return [0,0];
+    // }
+
+
+
+    getBlockEndCleanupForMtable(block: LBlock, bx0: number, by0: number, bscale: number,
+        miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {
 
         let bx1 = 0;
         let by1 = 0;
         let properBx0 = bx0;
         let properBy0 = by0;
-        if (block.children != null && block.children.length > 0) {
-            block.children.forEach((child, idx) => {
-                bscale = bscale * this.getProperScale(block.type, idx);
-                [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
-                child.x0 = properBx0;
-                child.y0 = properBy0;
-                child.scale = bscale;
-
-                child.miny0 = properBy0;
-                child.maxy1 = properBy0 + bscale;
-
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, 
-                    miny0, maxy1,minx0, maxx1);
-                    
-                if (child.miny0 < miny0) miny0 = child.miny0;
-                if (child.maxy1 > maxy1) maxy1 = child.maxy1;
-                if (child.minx0 < minx0) minx0 = child.minx0;
-                if (child.maxx1 > maxx1) maxx1 = child.maxx1;
-
-                bx0 = bx1;
-                bx0 = maxx1;
-                // if(bx0<bx1) bx0 = bx1;
-
-            });
-            block.x1 = bx1;
-            block.y1 = by1;
-
-            block.miny0 = miny0;
-            block.maxy1 = maxy1;
-
-            block.minx0 = minx0;
-            block.maxx1 = maxx1;
-            return [bx1, by1];
-        }
-        else if (block.text != null) {
-            // console.log(block);
-            let spacing=0;
-            // if(block.parent)
-            bx1 = bx0 + block.scale * (spacing+block.text.toString().length);
-            by1 = by0 + block.scale * 1;
-            block.x1 = bx1;
-            block.y1 = by1;
-            if (by0 < miny0) block.miny0 = by0;
-            if (by1 > maxy1) block.maxy1 = by1;
-            if (bx0 < minx0) block.minx0 = bx0;
-            if (bx1 > maxx1) block.maxx1 = bx1;
-            return [bx1, by1];
-        }
-        else {
-            throw ('som ting wong');
-        }
-
-        // return [0,0];
-    }
-    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number, 
-        miny0: number, maxy1: number, minx0:number,maxx1:number): [number, number] {
-
         if (block.type == LBlockType.mtable) {
-            let numCol=block["col"];
-            let numRow=block["row"];
-            console.log("mtable row:"+numRow.toString()+ " col:"+ numCol.toString());
+            let numCol = block["col"];
+            let numRow = block["row"];
 
-            const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1,minx0,maxx1);
-            let maxRowYRange = y1-by0;
-            let maxRowXRange = 0;
 
-            let mtrminy=Number.MAX_SAFE_INTEGER;
-            let mtrmaxy=Number.MIN_SAFE_INTEGER;
-            function getTallestRowYrange(disBlock: LBlock) {
-                if (disBlock.children != null && disBlock.children.length > 0) {
-                    disBlock.children.forEach((child) => {
-                        if (child.type = LBlockType.mtr) {
-                            if (child.x1 -child.x0> maxRowXRange) maxRowXRange = child.x1 -child.x0;
-                            if(child.miny0<mtrminy)mtrminy=child.miny0;
-                            if(child.maxy1>mtrmaxy)mtrmaxy=child.maxy1;
-                        }
-                        else {
-                            getTallestRowYrange(child);
-                        }
-                    });
-                }
-                return;
-            }
-            getTallestRowYrange(block);
-            console.log("mtable x1:"+(bx0+maxRowXRange).toString()+ " y1:"+(by0+ maxRowYRange*numRow).toString());
-            block.x1 = bx0+maxRowXRange;
-            block.y1 = by0+ maxRowYRange*numRow;
 
-            if(block.y1>maxy1 )block.maxy1 = block.y1;
-            // if(block.y1>maxy1 )block.maxy1 = block.y1;
-            block.miny0 = mtrminy;
-            block.maxy1 = mtrmaxy;
-            
-            return [bx0+maxRowXRange ,by0+ maxRowYRange*numRow];
-        };
-        let bx1 = 0;
-        let by1 = 0;
-        let properBx0 = bx0;
-        let properBy0 = by0;
+
+        }
+
+
         if (block.children != null && block.children.length > 0) {
-
             block.children.forEach((child, idx) => {
                 bscale = bscale * this.getProperScale(block.type, idx);
                 [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
@@ -398,34 +383,152 @@ export class MMParser {
 
 
 
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1,minx0,maxx1);
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1, minx0, maxx1);
                 if (child.miny0 < miny0) miny0 = child.miny0;
                 if (child.maxy1 > maxy1) maxy1 = child.maxy1;
                 if (child.minx0 < minx0) minx0 = child.minx0;
                 if (child.maxx1 > maxx1) maxx1 = child.maxx1;
                 bx0 = bx1;
                 bx0 = maxx1;
-                
+
             });
 
 
             block.x1 = bx1;
-            
-            
+
+
             block.y1 = by1;
 
             block.miny0 = miny0;
             block.maxy1 = maxy1;
             block.minx0 = minx0;
             block.maxx1 = maxx1;
+        }
+        return [bx1, by1];
+
+
+    };
+
+    getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number,
+        miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {
+
+        // if (block.type == LBlockType.mtable) {
+        //     let numCol = block["col"];
+        //     let numRow = block["row"];
+        //     console.log("mtable row:" + numRow.toString() + " col:" + numCol.toString());
+
+        //     const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1, minx0, maxx1);
+        //     let maxRowYRange = y1 - by0;
+        //     let maxRowXRange = 0;
+
+        //     let mtrminy = Number.MAX_SAFE_INTEGER;
+        //     let mtrmaxy = Number.MIN_SAFE_INTEGER;
+        //     function getTallestRowYrange(disBlock: LBlock) {
+        //         if (disBlock.children != null && disBlock.children.length > 0) {
+        //             disBlock.children.forEach((child) => {
+        //                 if (child.type == LBlockType.mtr) {
+        //                     if (child.x1 - child.x0 > maxRowXRange) maxRowXRange = child.x1 - child.x0;
+        //                     if (child.miny0 < mtrminy) mtrminy = child.miny0;
+        //                     if (child.maxy1 > mtrmaxy) mtrmaxy = child.maxy1;
+        //                 }
+        //                 else {
+        //                     getTallestRowYrange(child);
+        //                 }
+        //             });
+        //         }
+        //         return;
+        //     }
+        //     getTallestRowYrange(block);
+        //     console.log("mtable x1:" + (bx0 + maxRowXRange).toString() + " y1:" + (by0 + maxRowYRange * numRow).toString());
+
+
+
+
+        //     block.x1 = bx0 + maxRowXRange;
+        //     block.y1 = by0 + maxRowYRange * numRow;
+
+        //     if (block.y1 > maxy1) block.maxy1 = block.y1;
+        //     // if(block.y1>maxy1 )block.maxy1 = block.y1;
+        //     block.miny0 = mtrminy;
+        //     block.maxy1 = mtrmaxy;
+
+        //     return [bx0 + maxRowXRange, by0 + maxRowYRange * numRow];
+        // };
+
+        // normal Mtag element
+        let bx1 = 0;
+        let by1 = 0;
+        let properBx0 = bx0;
+        let properBy0 = by0;
+        
+        if (block.children != null && block.children.length > 0) {
+
+            block.children.forEach((child, idx) => {
+
+                bscale = bscale * this.getProperScale(block.type, idx);
+                [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
+                if (block.type==LBlockType.munderover && idx==2) properBx0 += bscale;
+
+                child.x0 = properBx0;
+                child.y0 = properBy0;
+                child.scale = bscale;
+
+                child.miny0 = properBy0;
+                child.maxy1 = properBy0 + bscale;
+
+                child.minx0 = properBx0;
+                child.maxx1 = properBx0 + bscale;
+
+
+
+                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1, minx0, maxx1);
+                if (child.miny0 < miny0) miny0 = child.miny0;
+                if (child.maxy1 > maxy1) maxy1 = child.maxy1;
+                if (child.minx0 < minx0) minx0 = child.minx0;
+                if (child.maxx1 > maxx1) maxx1 = child.maxx1;
+                
+                bx0 = bx1;
+            });
+
+
+            block.x1 = bx1;
+
+
+            block.y1 = by1;
+
+            block.miny0 = miny0;
+            block.maxy1 = maxy1;
+            block.minx0 = minx0;
+            block.maxx1 = maxx1;
+
+            if (block.type === LBlockType.msub || block.type === LBlockType.msup || block.type==LBlockType.msubsup ||
+                block.type === LBlockType.mover || block.type === LBlockType.munder || block.type===LBlockType.munderover )  bx1 = maxx1;
             return [bx1, by1];
         }
         else if (block.text != null) {
             // console.log(block);
-            bx1 = bx0 + block.scale * block.text.toString().length;
+            let realBTextLen= block.text.toString().length;
+
+            // for (let i = 0; i < block.text.toString().length; i++) {
+            //     if (block.text.toString().charCodeAt(i).toString(16).padStart(4, "0")=="2061")
+            //     {
+            //         console.log("find itttt"+realBTextLen);
+            //         realBTextLen-=1;
+            //         if(realBTextLen<0)realBTextLen=0;
+            //         console.log("find itttt"+realBTextLen);
+
+            //     }
+
+            // }
+
+            bx1 = bx0 + block.scale * realBTextLen;
             by1 = by0 + block.scale * 1;
+
+
+
             block.x1 = bx1;
             block.y1 = by1;
+
             if (by0 < miny0) block.miny0 = by0;
             if (by1 > maxy1) block.maxy1 = by1;
             if (bx0 < minx0) block.minx0 = bx0;
@@ -453,7 +556,7 @@ export class MMParser {
 
 
         // this.grandLBlockTree.y0 = 0;
-        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale, miny0, maxy1 , minx0,maxx1);
+        this.getBlockEnd(this.grandLBlockTree, this.grandLBlockTree.x0, this.grandLBlockTree.y0, this.grandLBlockTree.scale, miny0, maxy1, minx0, maxx1);
 
     };
 
@@ -527,6 +630,38 @@ export class MMParser {
 
     addRowColAttriForTablesInFlatArrs() {
         let curTable: MMFlatStruct = { name: "dummyTab", lvl: -1, col: 1, row: 1 };
+
+        let tableStack=[];
+
+        
+        for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
+            const ele=this.grandFlatArrWithClose[i];
+            if(ele.name=="mtable" && ele.closeFor==null){
+                tableStack.push(ele);
+                curTable=ele;
+                curTable.col=0;
+                curTable.row=0;
+            }
+            if (ele.name == "mtd" && ele.closeFor==null) {
+                curTable.col+=1;
+                const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === ele.uuid);
+                let spaceBetweenCol: MMFlatStruct = { name: "mi", lvl: ele.lvl + 1, text: " ", uuid: uuidv4().toString() };
+                this.grandFlatArr.splice(index + 1, 0, spaceBetweenCol);
+                // i += 1;
+            }
+            if (ele.name == "mtr" && ele.closeFor==null) {
+                curTable.row+=1;
+            }
+            if(ele.name=="mtable" && ele.closeFor!=null)
+            {
+                curTable.col=(curTable.col/curTable.row | 0);
+                console.log("col:"+curTable.col+" row:"+curTable.row);
+                curTable=tableStack.pop();
+            }
+        }
+        return;
+
+
         for (let i = 0; i < this.grandFlatArr.length; i += 1) {
             const ele = this.grandFlatArr[i];
             if (ele.name == "mtable") {
@@ -539,9 +674,9 @@ export class MMParser {
                 // curTable.attriArr.at(-2).val+=1;
                 curTable.col += 1;
 
-                let spaceBetweenCol:MMFlatStruct ={name:"mi",lvl:ele.lvl+1,text:" ",uuid:uuidv4().toString()};
-                this.grandFlatArr.splice(i+1, 0, spaceBetweenCol);
-                i+=1;
+                let spaceBetweenCol: MMFlatStruct = { name: "mi", lvl: ele.lvl + 1, text: " ", uuid: uuidv4().toString() };
+                this.grandFlatArr.splice(i + 1, 0, spaceBetweenCol);
+                i += 1;
             }
             if (ele.name == "mtr") {
                 curTable.row += 1;
@@ -550,17 +685,17 @@ export class MMParser {
             }
         }
         curTable.col = (curTable.col / curTable.row | 0);
+        // for (let i = 0; i < this.grandFlatArr.length; i += 1) {
+        //     const ele = this.grandFlatArr[i];
+        //     if (ele.name == "mtable") {
+        //         curTable = lodash.find(this.grandFlatArrWithClose, function (o) { return o.uuid == ele.uuid; });
+        //         curTable.col = ele.col;
+        //         curTable.row = ele.row;
+        //     }
+
+        // }
 
 
-        for (let i = 0; i < this.grandFlatArr.length; i += 1) {
-            const ele = this.grandFlatArr[i];
-            if (ele.name == "mtable") {
-                curTable = lodash.find(this.grandFlatArrWithClose, function (o) { return o.uuid == ele.uuid; });
-                curTable.col = ele.col;
-                curTable.row = ele.row;
-            }
-
-        }
         // let curTable: MMFlatStruct = { name: "dummyTab", lvl: -1, col: 1, row: 1 };
         // for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
         //     const ele = this.grandFlatArrWithClose[i];
@@ -631,8 +766,11 @@ export class MMParser {
         var mmstruct: MMFlatStruct = { uuid: uuidv4().toString(), lvl: curNode.lvl, name: curNode.name };
 
         let str = "lvl:" + curNode.lvl + " name:" + curNode.name;
+
+
         if (curNode.text != null) {
             str += " text:" + curNode.text;
+            if (curNode.text.toString().charCodeAt(0).toString(16).padStart(4, "0")=="2061")curNode.text=" ";
             mmstruct.text = curNode.text;
         }
         if (curNode.attriArr != null) {

@@ -61,12 +61,18 @@ export class MathMlStringMesh {
 
         for (let i = 0; i < mString.length; i++) {
 
-            if (mString[i] === " ") {
+            if (mString[i].charCodeAt(0).toString(16).padStart(4, "0")=="2061")continue;
+            if (mString[i] === " " ) {
+                continue;
                 let key = "USPACE";
+                let xlen=0.6;
+                let ylen=1.2;
+                let ystart=-0.3;
+                let xstart=0;
                 let newmesh: TMeshJson = {
                     char: mString[i],
                     uni: key,
-                    verts: [0, -0.3, 0, 0, -0.3 + 1.2, 0, 0 + 0.6, -0.3 + 1.2, 0, 0 + 0.6, -0.3, 0],
+                    verts: [xstart, ystart, 0, xstart, ystart + ylen, 0, xstart+xlen, ystart + ylen, 0, xstart+xlen, ystart, 0],
                     tris: [0, 1, 2, 3, 0, 2],
                     bbox: [0, 0, 0, 0]
                 };
@@ -74,7 +80,7 @@ export class MathMlStringMesh {
             }
             else {
 
-                let key = "U+" + mString[i].charCodeAt(0).toString(16).padStart(4, "0")
+                let key = "U+" + mString[i].charCodeAt(0).toString(16).padStart(4, "0");
                 let newmesh: TMeshJson = {
                     char: mString[i],
                     uni: key,

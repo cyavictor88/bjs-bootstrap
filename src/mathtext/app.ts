@@ -104,12 +104,12 @@ class App {
 
 
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
-        
-         var [mathml,mmp]=trykatex("\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
+        // \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}=\\vec{a_z}=\\
+        var [mathml,mmp]=trykatex("\\begin{bmatrix} \\begin{bmatrix} 1_{xy} & 2_x \\\\ a & b \\end{bmatrix} & 3 \\\\ a & b & c \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
         //  var [mathml,mmp]=trykatex("HHHHHHHH");
         
         //= a = b^{c_{de}^{fg} \\pi} ");
-       mmp.putinScene(mmp.grandLBlockTree,scene, secondCamera.layerMask);
+        mmp.putinScene(mmp.grandLBlockTree,scene, secondCamera.layerMask);
 
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;
