@@ -73,8 +73,6 @@ export interface MMFlatStruct {
 export interface LBlock {
     text?: string,
     pos?: { x: number, y: number },
-    hei?: number,
-    wid?: number,
     parent?: LBlock,
     children?: LBlock[],
     lvl?: number,
@@ -149,6 +147,9 @@ export class MMParser {
     }
 
     putinScene(block: LBlock, scene: Scene, layerMask: number,) {
+
+        let xoffset=-30;
+        let xscale=0.6;
         if (block.children != null && block.children.length > 0) {
 
             block.children.forEach((child, idx) => {
@@ -163,7 +164,7 @@ export class MMParser {
             let xinterval = (block.x1 - block.x0) / block.text.toString().length;
             for (let i = 0; i < block.text.toString().length; i++) {
                 const char = block.text.toString()[i];
-                let box = { x0: (block.x0 + i * xinterval) * 0.6, x1: (block.x0 + (i + 1) * xinterval) * 0.6, y0: block.y0, y1: block.y1 };
+                let box = { x0: (block.x0 +xoffset+ i * xinterval) * xscale, x1: (block.x0 +xoffset+ (i + 1) * xinterval) * xscale, y0: block.y0, y1: block.y1 };
                 let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, block.scale);
                 mathtxts.toTransedMesh();
 
@@ -591,26 +592,18 @@ export class MMParser {
                 switch (ele.name) {
                     case LBlockType.mo:
                         newLBlock["text"] = ele.text;
-                        newLBlock["wid"] = ele.text.length;
-                        newLBlock["hei"] = parentOfnewLBlock.scale * newLBlock.scale;
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mi:
                         newLBlock["text"] = ele.text;
-                        newLBlock["wid"] = ele.text.length;
-                        newLBlock["hei"] = parentOfnewLBlock.scale * newLBlock.scale;
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mn:
                         newLBlock["text"] = ele.text;
-                        newLBlock["wid"] = ele.text.length;
-                        newLBlock["hei"] = parentOfnewLBlock.scale * newLBlock.scale;
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mtext:
                         newLBlock["text"] = ele.text;
-                        newLBlock["wid"] = ele.text.length;
-                        newLBlock["hei"] = parentOfnewLBlock.scale * newLBlock.scale;
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mtable:

@@ -73,8 +73,8 @@ class App {
 
         // var secondCamera = new  ArcRotateCamera("Camera2", 3*Math.PI / 2, Math.PI / 2, 5, Vector3.Zero(), scene);      
         var secondCamera = new UniversalCamera("camera", new Vector3(0, 0, -10), scene);
-        secondCamera.setTarget(new Vector3(1, 0, 0));
-        var cameraZoom = 12;
+        secondCamera.setTarget(new Vector3(0, 0, 0));
+        var cameraZoom = 24;
         secondCamera.mode = Camera.ORTHOGRAPHIC_CAMERA;
         secondCamera.orthoTop = cameraZoom / 2;
         secondCamera.orthoBottom = -cameraZoom / 2;
@@ -106,6 +106,7 @@ class App {
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
         // \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}=\\vec{a_z}=\\
         var [mathml,mmp]=trykatex("\\begin{bmatrix} \\begin{bmatrix} 1_{xy} & 2_x \\\\ a & b \\end{bmatrix} & 3 \\\\ a & b & c \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
+        // var [mathml,mmp]=trykatex("\\lim_{x\\to\\infty} sin(\\theta)=  \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
         //  var [mathml,mmp]=trykatex("HHHHHHHH");
         
         //= a = b^{c_{de}^{fg} \\pi} ");
