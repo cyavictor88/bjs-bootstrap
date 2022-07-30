@@ -92,6 +92,10 @@ export interface LBlock {
 
     minx0?: number,
     maxx1?: number,
+
+
+    tEntryH?:number,
+    tEntryW?:number,
     // start?: number,
     // end?: number,
 };
@@ -134,6 +138,7 @@ export class MMParser {
 
         this.turnGrandFlatArrToGrandLBlockTree();
         this.addBlockStartEndToGRandBlockTree();
+        this.getBlockEndCleanupForMtable();
 
 
         console.log(this.grandLBlockTree);
@@ -349,63 +354,70 @@ export class MMParser {
     //     // return [0,0];
     // }
 
-
-
-    getBlockEndCleanupForMtable(block: LBlock, bx0: number, by0: number, bscale: number,
-        miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {
-
-        let bx1 = 0;
-        let by1 = 0;
-        let properBx0 = bx0;
-        let properBy0 = by0;
-        if (block.type == LBlockType.mtable) {
-            let numCol = block["col"];
-            let numRow = block["row"];
-
-
-
-
-        }
-
-
+    getBlockWithUUID(block:LBlock,uuid:string):LBlock{
+        if (block.uuid===uuid){
+            // console.log("found uuid");
+            // console.log(block);
+            return block;
+        } 
+        let res = null;
         if (block.children != null && block.children.length > 0) {
-            block.children.forEach((child, idx) => {
-                bscale = bscale * this.getProperScale(block.type, idx);
-                [properBx0, properBy0] = this.getProperX0Y0(block, bx0, by0, bscale, idx);
-                child.x0 = properBx0;
-                child.y0 = properBy0;
-                child.scale = bscale;
-
-                child.miny0 = properBy0;
-                child.maxy1 = properBy0 + bscale;
-
-                child.minx0 = properBx0;
-                child.maxx1 = properBx0 + bscale;
-
-
-
-                [bx1, by1] = this.getBlockEnd(child, child.x0, child.y0, child.scale, miny0, maxy1, minx0, maxx1);
-                if (child.miny0 < miny0) miny0 = child.miny0;
-                if (child.maxy1 > maxy1) maxy1 = child.maxy1;
-                if (child.minx0 < minx0) minx0 = child.minx0;
-                if (child.maxx1 > maxx1) maxx1 = child.maxx1;
-                bx0 = bx1;
-                bx0 = maxx1;
-
-            });
-
-
-            block.x1 = bx1;
-
-
-            block.y1 = by1;
-
-            block.miny0 = miny0;
-            block.maxy1 = maxy1;
-            block.minx0 = minx0;
-            block.maxx1 = maxx1;
+            for (let i = 0; res == null && i < block.children.length; i++) {      
+                res=this.getBlockWithUUID(block.children[i],uuid);
+            }
         }
-        return [bx1, by1];
+        return res;
+    }
+
+
+    getBlockEndCleanupForMtable() {
+
+
+
+
+        var curTable: LBlock = {scale:1,type:LBlockType.mtable,uuid:"uuid"};
+        var dummyBlock: LBlock = {scale:1,type:LBlockType.mtable,uuid:"uuid"};
+
+        let tableStack=[];
+
+        
+        for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
+            const ele=this.grandFlatArrWithClose[i];
+            if(ele.name=="mtable" && ele.closeFor==null){
+                tableStack.push(ele);
+                curTable=this.getBlockWithUUID(this.grandLBlockTree,ele.uuid);
+
+
+
+                curTable.tEntryH=0;
+                curTable.tEntryW=0;
+                curTable["curRow"]=-1;
+            }
+            if(ele.name == "mtr" && ele.closeFor==null){
+                curTable["curRow"]+=1;
+                curTable["curCol"]=-1;
+            }
+            if (ele.name == "mtd" && ele.closeFor==null) {
+                dummyBlock=this.getBlockWithUUID(this.grandLBlockTree,ele.uuid);
+                dummyBlock["curRow"]=curTable["curRow"];
+                dummyBlock["curCol"]=curTable["curCol"]+=1;
+                if(dummyBlock.x1-dummyBlock.x0 > curTable.tEntryW) curTable.tEntryW= dummyBlock.x1-dummyBlock.x0 ;
+                if(dummyBlock.y1-dummyBlock.y0 > curTable.tEntryH) curTable.tEntryH= dummyBlock.y1-dummyBlock.y0 ;
+            }
+            if(ele.name=="mtable" && ele.closeFor!=null)
+            {
+                console.log(curTable.uuid);
+                console.log(ele.closeFor.col);
+                console.log(ele.closeFor.row);
+                console.log(curTable.tEntryH);
+                console.log(curTable.tEntryW);
+                let lasttable = tableStack.pop();
+                curTable=this.getBlockWithUUID(this.grandLBlockTree,  lasttable.uuid );
+
+            }
+        }
+
+      
 
 
     };
@@ -649,6 +661,7 @@ export class MMParser {
             {
                 curTable.col=(curTable.col/curTable.row | 0);
                 console.log("col:"+curTable.col+" row:"+curTable.row);
+                curTable=tableStack.pop();
                 curTable=tableStack.pop();
             }
         }
