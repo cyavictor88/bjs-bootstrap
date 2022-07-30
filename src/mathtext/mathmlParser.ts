@@ -661,8 +661,8 @@ export class MMParser {
             {
                 curTable.col=(curTable.col/curTable.row | 0);
                 console.log("col:"+curTable.col+" row:"+curTable.row);
-                curTable=tableStack.pop();
-                curTable=tableStack.pop();
+                tableStack.pop();
+                if(tableStack.length>0) curTable=tableStack[tableStack.length-1];
             }
         }
         return;
