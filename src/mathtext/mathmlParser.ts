@@ -1,6 +1,7 @@
 import { RegisterMaterialPlugin } from '@babylonjs/core';
 import { Scene } from '@babylonjs/core/scene';
 import * as lodash from 'lodash';
+import { transform } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { MathMlStringMesh } from './mathml2mesh';
@@ -66,6 +67,22 @@ export interface MMFlatStruct {
     closeFor?: MMFlatStruct,
     col?: number,
     row?: number,
+    belongToTable?: string,
+    colIdx?: number,
+    rowIdx?: number,
+
+
+    x0?: number,
+    y0?: number,
+    x1?: number,
+    y1?: number,
+
+
+    miny0?: number,
+    maxy1?: number,
+
+    minx0?: number,
+    maxx1?: number,
 
 };
 
@@ -97,6 +114,9 @@ export interface LBlock {
 
     tEntryH?: number,
     tEntryW?: number,
+
+    colidx?: number,
+    rowidx?: number,
     // start?: number,
     // end?: number,
 };
@@ -139,19 +159,50 @@ export class MMParser {
 
         this.turnGrandFlatArrToGrandLBlockTree();
         this.addBlockStartEndToGRandBlockTree();
+
+
+        this.putBlockStartEndToGrandFlatArr(this.grandLBlockTree);
+
+
+
         this.getBlockEndCleanupForMtable();
 
 
-        console.log(this.grandLBlockTree);
+        // console.log(this.grandLBlockTree);
 
 
-        this.iterateGrandBlockTree(this.grandLBlockTree, "");
+        // this.iterateGrandBlockTree(this.grandLBlockTree, "");
+
+        console.log(this.grandFlatArr);
+
 
         // console.log(mathmlXml);
 
 
     }
+    putBlockStartEndToGrandFlatArr(block: LBlock) {
 
+        var blockInArray = lodash.find(this.grandFlatArr, function (o) { return o.uuid == block.uuid; });
+        if (blockInArray != undefined) {
+            if (block.maxx1 != null) blockInArray.maxx1 = block.maxx1;
+            if (block.maxy1 != null) blockInArray.maxy1 = block.maxy1;
+            if (block.minx0 != null) blockInArray.minx0 = block.minx0;
+            if (block.miny0 != null) blockInArray.miny0 = block.miny0;
+            if (block.y0 != null) blockInArray.y0 = block.y0;
+            if (block.y1 != null) blockInArray.y1 = block.y1;
+            if (block.x0 != null) blockInArray.x0 = block.x0;
+            if (block.x1 != null) blockInArray.x1 = block.x1;
+        }
+
+
+        if (block.children != null && block.children.length > 0) {
+
+            block.children.forEach((child, idx) => {
+                this.putBlockStartEndToGrandFlatArr(child);
+            });
+        }
+
+    }
     putinScene(block: LBlock, scene: Scene, layerMask: number,) {
 
         let xoffset = -30;
@@ -173,7 +224,6 @@ export class MMParser {
                 let box = { x0: (block.x0 + xoffset + i * xinterval) * xscale, x1: (block.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: block.y0, y1: block.y1 };
                 let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, block.scale);
                 mathtxts.toTransedMesh();
-
             }
 
 
@@ -371,38 +421,87 @@ export class MMParser {
     }
 
 
+    textPlacementGivenNewBox(xp0: number, xp1: number, x0: number, x1: number) {
+        let newx0 = xp0 + (xp1 - xp0) / 2 - (x1 - x0) / 2;
+        return newx0;
+
+    }
+
+
+    getColIdx(curTotalMTDcnt: number, numCol: number) {
+        let colIdx = curTotalMTDcnt % numCol;
+        return colIdx;
+    }
     getBlockEndCleanupForMtable() {
-
         let tableStacksofStack = [];
+        let curOpenedTable = [];
 
-        let curOpenedTable=[];
-        let curTableShortStack = [];
+
+        let tmpTableInfo = { rowIdx: 0, colIdx: 0, tab: this.grandFlatArrWithClose[0] };
         for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
             const ele = this.grandFlatArrWithClose[i];
+            const eleinArray =  lodash.find(this.grandFlatArr, function (o) { return o.uuid == ele.uuid; });
+
             if (ele.name == "mtable" && ele.closeFor == null) {
-               
-                if (curOpenedTable.length==0) {
-                    curTableShortStack = [ele];
-                    tableStacksofStack.push(curTableShortStack);
+                tmpTableInfo = { rowIdx: -1, colIdx: 0, tab: eleinArray };
+
+                if (curOpenedTable.length == 0) {
+                    tableStacksofStack.push([eleinArray]);
+
                 }
                 else {
-                    tableStacksofStack[tableStacksofStack.length - 1].push(ele);
+                    tableStacksofStack[tableStacksofStack.length - 1].push(eleinArray);
                 }
-                curOpenedTable.push(ele);
+                curOpenedTable.push(tmpTableInfo);
+
+
+
 
             }
             if (ele.name == "mtable" && ele.closeFor != null) {
                 curOpenedTable.pop();
+
+                tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
             }
 
+
+            if(eleinArray!=undefined)
+            {
+
+                if (ele.name === "mtr" || ele.name === "mtd") {
+                    eleinArray.belongToTable = curOpenedTable[curOpenedTable.length - 1].uuid;
+
+
+                }
+                if (ele.name === "mtr") {
+                    eleinArray.rowIdx = tmpTableInfo.rowIdx;
+                    tmpTableInfo.rowIdx += 1;
+                }
+                if (ele.name === "mtd") {
+                    eleinArray.rowIdx = tmpTableInfo.rowIdx;
+                    eleinArray.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+                    tmpTableInfo.colIdx += 1;
+
+
+
+                }
+            }
+
+
+
         }
 
 
-        for (let i = 0; i < tableStacksofStack.length; i += 1) {
-            let tableStack=tableStacksofStack[i];
-            
+        // for (let i = tableStacksofStack.length - 1; i >= 0; i -= 1) {
+        //     let tableStack = tableStacksofStack[i];
+        //     while (tableStack.length > 0) {
+        //         let table = tableStack.pop();
 
-        }
+        //     }
+
+
+
+        // }
 
 
         // var curTable: LBlock = {scale:1,type:LBlockType.mtable,uuid:"uuid"};
