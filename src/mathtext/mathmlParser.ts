@@ -69,7 +69,7 @@ export interface MMFlatStruct {
     row?: number,
 
 
-    belongToTable?: string,
+    belongToTable?: MMFlatStruct,
     colIdx?: number,
     rowIdx?: number,
 
@@ -123,7 +123,7 @@ export interface LBlock {
 
     colidx?: number,
     rowidx?: number,
-    belongTotable?: string,
+    belongToTable?: MMFlatStruct,
     col?: number,
     row?: number,
     // start?: number,
@@ -164,6 +164,9 @@ export class MMParser {
         this.assembleGrandFlatWithCloseArr();
 
         this.addRowColAttriForTablesInFlatArrs();
+        // this.addRowColAttriForTablesInClosedFlatArrs();
+
+
         // console.log(this.grandFlatArrWithClose);
         console.log(this.grandFlatArr);
 
@@ -179,7 +182,7 @@ export class MMParser {
         this.markTableInfoinArrAndTree();
 
 
-        this.rearrangeXYForTable();
+       // this.rearrangeXYForTable();
 
 
         // console.log(this.grandLBlockTree);
@@ -187,11 +190,14 @@ export class MMParser {
 
         // this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
-        // console.log(this.grandFlatArr);
+        console.log(this.grandFlatArrWithClose);
 
 
         // console.log(mathmlXml);
 
+
+    }
+    addRowColAttriForTablesInClosedFlatArrs(){
 
     }
 
@@ -199,12 +205,24 @@ export class MMParser {
         while (this.tableStacksofStack.length > 0) {
             let tablestack = this.tableStacksofStack.pop();
             console.log("new tablestack:");
+            while (tablestack.length > 0) {
+                let oneTable = tablestack.pop();
+                let rows = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtr" && o.belongToTable.uuid === oneTable.uuid; });
+                let cols = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtd" && o.belongToTable.uuid === oneTable.uuid; });
+
+            }
+        }
+
+        return;
+        while (this.tableStacksofStack.length > 0) {
+            let tablestack = this.tableStacksofStack.pop();
+            console.log("new tablestack:");
 
             while (tablestack.length > 0) {
-                let table = tablestack.pop();
-                console.log("this table:" + table.uuid.substring(0, 4));
-                let rows = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtr" && o.belongToTable === table.uuid; });
-                let cols = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtd" && o.belongToTable === table.uuid; });
+                let oneTable = tablestack.pop();
+                console.log("this table:" + oneTable.uuid.substring(0, 4));
+                let rows = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtr" && o.belongToTable.uuid === oneTable.uuid; });
+                let cols = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtd" && o.belongToTable.uuid === oneTable.uuid; });
 
 
                 let maxheight = 0;
@@ -214,7 +232,7 @@ export class MMParser {
                     let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === rows[i].uuid);
                     while (true) {
                         let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
-                        if (index2>-1) {
+                        if (index2 > -1) {
                             let rowh = this.grandFlatArr[index2].y1 - this.grandFlatArr[index2].y0;
                             if (rowh > maxheight) maxheight = rowh;
                         }
@@ -231,7 +249,7 @@ export class MMParser {
                     let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === cols[i].uuid);
                     while (true) {
                         let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
-                        if (index2>-1) {
+                        if (index2 > -1) {
                             let colw = this.grandFlatArr[index2].x1 - this.grandFlatArr[index2].x0;
                             if (colw > maxwidth) maxwidth = colw;
                         }
@@ -247,6 +265,52 @@ export class MMParser {
 
 
 
+                let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === oneTable.uuid);
+                while (true) {
+                    let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
+
+
+
+                    if (index2 > -1) {
+
+
+
+
+                        let ele = this.grandFlatArr[index2];
+                        
+                        
+                        if( ele.name==="mrow")
+                        {
+                            let eleh = ele.y1-ele.y0;
+                            let hidiff=maxheight-eleh;
+                            ele.y1 += hidiff;
+                            let tmpi2 = index+1;
+                            
+                        }
+                        
+                        
+                        
+                        
+                        
+                        let elewid = ele.x1 - ele.x0;
+                        let widdiff = maxwidth - elewid;
+                        ele.x1 += widdiff;
+                        index2 += 1;
+                        while (index2 < this.grandFlatArr.length) {
+                            this.grandFlatArr[index2].x0 += widdiff;
+                            this.grandFlatArr[index2].x1 += widdiff;
+                            index2 += 1;
+                        }
+                    }
+                    index = index + 1;
+                    if (this.grandFlatArrWithClose[index].name === "mtable" && this.grandFlatArrWithClose[index].closeFor != null &&
+                        this.grandFlatArrWithClose[index].closeFor.uuid == oneTable.uuid)
+                        break;
+                }
+                // let ithRowTDs = lodash.filter(cols, function(o) { return (o.rowIdx==i); });   
+
+
+
 
             }
         }
@@ -256,6 +320,7 @@ export class MMParser {
     putBlockStartEndToGrandFlatArr(block: LBlock) {
 
         var blockInArray = this.grandFlatArr[block.idxInArray];//lodash.find(this.grandFlatArr, function (o) { return o.uuid == block.uuid; });
+        // var blockInArrayWithClose =lodash.find(this.grandFlatArrWithClose, function (o) { return o.uuid == block.uuid; });
         if (blockInArray != undefined) {
             if (block.maxx1 != null) blockInArray.maxx1 = block.maxx1;
             if (block.maxy1 != null) blockInArray.maxy1 = block.maxy1;
@@ -267,6 +332,7 @@ export class MMParser {
             if (block.x1 != null) blockInArray.x1 = block.x1;
             if (block.scale != null) blockInArray.scale = block.scale;
         }
+
 
 
         if (block.children != null && block.children.length > 0) {
@@ -325,10 +391,10 @@ export class MMParser {
 
 
         if (block.type == LBlockType.mtd) {
-            console.log("table:" + block.belongTotable.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx + " colidx:" + block.colidx);
+            console.log("table:" + block.belongToTable.uuid.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx + " colidx:" + block.colidx);
         }
         if (block.type == LBlockType.mtr) {
-            console.log("table:" + block.belongTotable.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx);
+            console.log("table:" + block.belongToTable.uuid.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx);
 
 
 
@@ -567,69 +633,92 @@ export class MMParser {
         let tmpTableInfo = { rowIdx: 0, colIdx: 0, tab: this.grandFlatArrWithClose[0] };
         for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
             const ele = this.grandFlatArrWithClose[i];
-            const eleinArray = lodash.find(this.grandFlatArr, function (o) { return o.uuid == ele.uuid; });
+            // const eleinArray = lodash.find(this.grandFlatArr, function (o) { return o.uuid == ele.uuid; });
+
+
+
+
             if (ele.name == "mtable" && ele.closeFor == null) {
-                tmpTableInfo = { rowIdx: -1, colIdx: 0, tab: eleinArray };
 
                 if (curOpenedTable.length == 0) {
-                    this.tableStacksofStack.push([eleinArray]);
+                    this.tableStacksofStack.push([ele]);
                 }
                 else {
-                    this.tableStacksofStack[this.tableStacksofStack.length - 1].push(eleinArray);
+                    ele.belongToTable=tmpTableInfo.tab;
+                    this.tableStacksofStack[this.tableStacksofStack.length - 1].push(ele);
                 }
+                tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
                 curOpenedTable.push(tmpTableInfo);
+                this.grandFlatArrWithClose[i-2].belongToTable=ele; // marking "["
+                continue;
+
             }
             if (ele.name == "mtable" && ele.closeFor != null) {
+                this.grandFlatArrWithClose[i+1].belongToTable=tmpTableInfo.tab; // marking "]"
                 curOpenedTable.pop();
                 tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
+                i=i+1
+                continue;
             }
-            if (eleinArray != undefined) {
-                if (ele.name === "mtr" || ele.name === "mtd") {
-                    eleinArray.belongToTable = tmpTableInfo.tab.uuid;
-                    const tableEle = lodash.find(this.grandFlatArr, function (o) { return o.uuid == eleinArray.belongToTable; });
-                    eleinArray.col = tableEle.col;
-                    eleinArray.row = tableEle.row;
-                }
-                if (ele.name === "mtr") {
-                    tmpTableInfo.rowIdx += 1;
-                    eleinArray.rowIdx = tmpTableInfo.rowIdx;
-                }
-                if (ele.name === "mtd") {
-                    eleinArray.rowIdx = tmpTableInfo.rowIdx;
-                    eleinArray.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
-                    tmpTableInfo.colIdx += 1;
-                }
+            if(curOpenedTable.length==0 || ele.closeFor!=null) continue;
+
+            
+            ele.belongToTable = tmpTableInfo.tab;
+            ele.col=ele.belongToTable.col;
+            ele.row=ele.belongToTable.row;
+
+            // if(ele.name==="mtr" || ele.name==="mtd" ){
+            //     ele.belongToTable = tmpTableInfo.tab;
+            //     ele.col=ele.belongToTable.col;
+            //     ele.row=ele.belongToTable.row;
+            // }
+
+            if (ele.name === "mtr") {
+                tmpTableInfo.rowIdx += 1;
+                ele.rowIdx = tmpTableInfo.rowIdx;
+            }
+            else if (ele.name === "mtd") {
+                ele.rowIdx = tmpTableInfo.rowIdx;
+                tmpTableInfo.colIdx += 1;
+                ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+            }
+            else
+            {
+                // ele.belongToTable = tmpTableInfo.tab;
+                // ele.col=ele.belongToTable.col;
+                // ele.row=ele.belongToTable.row;
+                ele.rowIdx = tmpTableInfo.rowIdx;
+                ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
             }
         }
 
 
         // put colIdx and rowIdx info into "mtd" and "mtr" in granblocktree
-        let blockTreeStack = [this.grandLBlockTree];
-        while (blockTreeStack.length > 0) {
-            let block = blockTreeStack.pop();
-            if (block.children != null) {
-                block.children.forEach((child, idx) => {
-                    blockTreeStack.push(child);
-                })
-            }
-
-            if (block.type == LBlockType.mtd) {
-                let idx = block.idxInArray;
-                block.colidx = this.grandFlatArr[idx].colIdx;
-                block.rowidx = this.grandFlatArr[idx].rowIdx;
-                block.belongTotable = this.grandFlatArr[idx].belongToTable;
-                const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongTotable);
-                block.col = this.grandFlatArr[index].col;
-                block.row = this.grandFlatArr[index].row;
-            }
-            if (block.type == LBlockType.mtr) {
-                let idx = block.idxInArray;
-                block.rowidx = this.grandFlatArr[idx].rowIdx;
-                block.belongTotable = this.grandFlatArr[idx].belongToTable;
-                const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongTotable);
-                block.row = this.grandFlatArr[index].row;
-            }
-        }
+        // let blockTreeStack = [this.grandLBlockTree];
+        // while (blockTreeStack.length > 0) {
+        //     let block = blockTreeStack.pop();
+        //     if (block.children != null) {
+        //         block.children.forEach((child, idx) => {
+        //             blockTreeStack.push(child);
+        //         })
+        //     }
+        //     if (block.type == LBlockType.mtd) {
+        //         let idx = block.idxInArray;
+        //         block.colidx = this.grandFlatArr[idx].colIdx;
+        //         block.rowidx = this.grandFlatArr[idx].rowIdx;
+        //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
+        //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
+        //         block.col = block.belongToTable.col;
+        //         block.row = block.belongToTable.row;
+        //     }
+        //     if (block.type == LBlockType.mtr) {
+        //         let idx = block.idxInArray;
+        //         block.rowidx = this.grandFlatArr[idx].rowIdx;
+        //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
+        //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
+        //         block.row = block.belongToTable.row;
+        //     }
+        // }
 
 
 
@@ -874,6 +963,11 @@ export class MMParser {
                 this.grandFlatArr.splice(index + 1, 0, spaceBetweenCol);
 
 
+                this.grandFlatArrWithClose.splice(i+1,0,spaceBetweenCol);
+                let spaceBetweenColClose: MMFlatStruct = { name: "mi", lvl: ele.lvl + 1, closeFor:spaceBetweenCol};
+
+                this.grandFlatArrWithClose.splice(i+2,0,spaceBetweenColClose);
+
             }
             if (ele.name == "mtr" && ele.closeFor == null) {
                 curTable.row += 1;
@@ -891,73 +985,6 @@ export class MMParser {
                 if (tableStack.length > 0) curTable = tableStack[tableStack.length - 1];
             }
         }
-        return;
-
-
-        for (let i = 0; i < this.grandFlatArr.length; i += 1) {
-            const ele = this.grandFlatArr[i];
-            if (ele.name == "mtable") {
-                curTable.col = (curTable.col / curTable.row | 0);
-                curTable = ele;
-                curTable.col = 0;
-                curTable.row = 0;
-            }
-            if (ele.name == "mtd") {
-                // curTable.attriArr.at(-2).val+=1;
-                curTable.col += 1;
-
-                let spaceBetweenCol: MMFlatStruct = { name: "mi", lvl: ele.lvl + 1, text: " ", uuid: uuidv4().toString() };
-                this.grandFlatArr.splice(i + 1, 0, spaceBetweenCol);
-                i += 1;
-            }
-            if (ele.name == "mtr") {
-                curTable.row += 1;
-
-                // curTable.attriArr.at(-1).val+=1;
-            }
-        }
-        curTable.col = (curTable.col / curTable.row | 0);
-        // for (let i = 0; i < this.grandFlatArr.length; i += 1) {
-        //     const ele = this.grandFlatArr[i];
-        //     if (ele.name == "mtable") {
-        //         curTable = lodash.find(this.grandFlatArrWithClose, function (o) { return o.uuid == ele.uuid; });
-        //         curTable.col = ele.col;
-        //         curTable.row = ele.row;
-        //     }
-
-        // }
-
-
-        // let curTable: MMFlatStruct = { name: "dummyTab", lvl: -1, col: 1, row: 1 };
-        // for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
-        //     const ele = this.grandFlatArrWithClose[i];
-        //     if (ele.name == "mtable" && ele.closeFor == null) {
-        //         curTable.col = (curTable.col / curTable.row | 0);
-        //         curTable = ele;
-        //         curTable.col = 0;
-        //         curTable.row = 0;
-        //     }
-        //     if (ele.name == "mtd" && ele.closeFor == null) {
-        //         // curTable.attriArr.at(-2).val+=1;
-        //         curTable.col += 1;
-        //     }
-        //     if (ele.name == "mtr" && ele.closeFor == null) {
-        //         curTable.row += 1;
-        //         // curTable.attriArr.at(-1).val+=1;
-        //     }
-        // }
-        // curTable.col = (curTable.col / curTable.row | 0);
-
-
-        // for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
-        //     const ele = this.grandFlatArrWithClose[i];
-        //     if (ele.name == "mtable" && ele.closeFor == null) {
-        //         curTable=lodash.find(this.grandFlatArr, function(o) { return o.uuid == ele.uuid; });
-        //         curTable.col=ele.col;
-        //         curTable.row=ele.row;
-        //     }
-
-        // }
 
     }
     findLastOpenEleAtlvl(j: number): MMFlatStruct {
