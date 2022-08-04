@@ -88,6 +88,8 @@ export interface MMFlatStruct {
 
     scale?: number,
 
+    brakectForTab?:boolean,
+
 };
 
 
@@ -139,7 +141,8 @@ export class MMParser {
     public grandFlatArr: MMFlatStruct[];
     public grandFlatArrWithClose: MMFlatStruct[];
     public grandLBlockTree: LBlock;
-    public tableStacksofStack: MMFlatStruct[][];
+    public tableStacksofStackY: MMFlatStruct[][];
+    public tableStacksofStackX: MMFlatStruct[][];
 
 
 
@@ -150,7 +153,8 @@ export class MMParser {
         this.grandMTagNode = { name: "dummy", children: [], lvl: -1 };
         this.mathmlXml = mathmlXml;
         this.parsedStringArr = [];
-        this.tableStacksofStack = [];
+        this.tableStacksofStackX = [];
+        this.tableStacksofStackY = [];
 
 
         this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
@@ -182,7 +186,8 @@ export class MMParser {
         this.markTableInfoinArrAndTree();
 
 
-        this.rearrangeXYForTable();
+        this.rearrangeYForTable();
+        this.rearrangeXForTable();
 
 
         // console.log(this.grandLBlockTree);
@@ -252,11 +257,7 @@ export class MMParser {
 
 
     }
-    moveDxDYfromidx(r: number, c: number, newxwid: number, newyhei: number, idx: number, entriesEle: any[]) {
-
-
-
-
+    moveDYfromidx(r: number, c: number, newxwid: number, newyhei: number, idx: number, entriesEle: any[]) {
         const ele = this.grandFlatArr[idx];
         if (r == 0) {
             let dx = newxwid - (ele.x1 - ele.x0);
@@ -341,9 +342,9 @@ export class MMParser {
         // }
     }
 
-    rearrangeXYForTable() {
-        while (this.tableStacksofStack.length > 0) {
-            let tablestack = this.tableStacksofStack.pop();
+    rearrangeYForTable() {
+        while (this.tableStacksofStackY.length > 0) {
+            let tablestack = this.tableStacksofStackY.pop();
             console.log("new tablestack:");
             while (tablestack.length > 0) {
                 let oneTable = tablestack.pop();
@@ -400,7 +401,7 @@ export class MMParser {
                         let newyhei = entriesSize[r][c][1];
                         const ele = this.grandFlatArr[index];
                         console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
-                        this.moveDxDYfromidx(r, c, newxwid, newyhei, index, entriesEle);
+                        this.moveDYfromidx(r, c, newxwid, newyhei, index, entriesEle);
                     }
 
 
@@ -412,106 +413,146 @@ export class MMParser {
             }
         }
 
-        return;
-        while (this.tableStacksofStack.length > 0) {
-            let tablestack = this.tableStacksofStack.pop();
-            console.log("new tablestack:");
 
+
+
+    }
+
+    moveDXfromidx(r: number, c: number, newxwid: number, newyhei: number, idx: number, entriesEle: any[]) {
+        const ele = this.grandFlatArr[idx];
+        if (r > 0) {
+
+            let miny0 = Number.MAX_SAFE_INTEGER;
+
+            let minx0 = Number.MAX_SAFE_INTEGER;
+            let firstEntr: [] = entriesEle[0][c];
+            for (let j = 0; j <firstEntr.length; j++) {
+                let sub_ele: MMFlatStruct = firstEntr[j];
+
+                if (sub_ele.name === "mtable") {
+                    let changeminx0 = true;
+                    [minx0, miny0] = this.getMinx0Miny0(sub_ele, minx0, miny0, changeminx0);
+                }
+                else {
+                    if (sub_ele.x0 < minx0) minx0 = sub_ele.x0;
+                }
+            }
+
+            let dx = ele.x0 - (newxwid/2 + minx0)  
+
+            ele.x0 -=dx;
+            ele.x1=ele.x0+newxwid;
+            console.log(newxwid);
+
+            // let dx = ele.x0-minx0;
+            // ele.x0 = minx0  ;
+            // ele.x1 = minx0+newxwid;
+
+            for(let i=idx+1;i<this.grandFlatArr.length;i++)
+            {
+                const sub_ele = this.grandFlatArr[i];
+                sub_ele.x0 -= dx
+                sub_ele.x1 -= dx;
+            }
+
+
+
+
+
+
+
+        }
+
+        // let dx = newxwid - (ele.x1 - ele.x0);
+        // if (dx < 0) dx = 0;
+        // let dy = newyhei - (ele.y1 - ele.y0);
+
+        // ele.x1 += dx;
+        // ele.y0 = -newy0;
+
+
+        // for (let i = idx + 1; i < this.grandFlatArr.length; i++) {
+        //     const ele = this.grandFlatArr[i];
+        //     // if (ele.x0 == null || ele.x1 == null) continue;
+        //     // if (ele.y0 == null || ele.y1 == null) continue;
+        //     ele.x0 += dx
+        //     ele.x1 += dx;
+        //     // ele.y0 += dy;
+        //     // ele.y1 += dy;
+        // }
+    }
+    rearrangeXForTable() {
+        while (this.tableStacksofStackX.length > 0) {
+            let tablestack = this.tableStacksofStackX.pop();
+            console.log("new tablestack:");
             while (tablestack.length > 0) {
                 let oneTable = tablestack.pop();
-                console.log("this table:" + oneTable.uuid.substring(0, 4));
-                let rows = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtr" && o.belongToTable.uuid === oneTable.uuid; });
-                let cols = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.name === "mtd" && o.belongToTable.uuid === oneTable.uuid; });
+                let entriesSize = [];
+                let entriesEle = [];
+                for (let i = 0; i < oneTable.row; i++) {
+                    entriesSize.push([]);
+                    entriesEle.push([]);
+                    for (let j = 0; j < oneTable.col; j++) {
+                        entriesSize[entriesSize.length - 1].push([-1, -1]);
+                        let entries = lodash.filter(this.grandFlatArr, function (o) {
+                            return (o.belongToTable != null && o.brakectForTab==null && o.text!=" "
+                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
+                        });
+                        let parentTable = lodash.find(this.grandFlatArr, function (o) {
+                            return (o.belongToTable != null && o.name === "mtable"
+                                && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
+                        });
+                        if (parentTable != null) entries.push(parentTable);
 
-
-                let maxheight = 0;
-                let maxwidth = 0;
-                for (let i = 0; i < rows.length; i++) {
-
-                    let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === rows[i].uuid);
-                    while (true) {
-                        let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
-                        if (index2 > -1) {
-                            let rowh = this.grandFlatArr[index2].y1 - this.grandFlatArr[index2].y0;
-                            if (rowh > maxheight) maxheight = rowh;
-                        }
-                        index = index + 1;
-                        if (this.grandFlatArrWithClose[index].name === "mtr" && this.grandFlatArrWithClose[index].closeFor != null)
-                            break;
+                        entriesEle[entriesEle.length - 1].push(entries);
                     }
-                    // let ithRowTDs = lodash.filter(cols, function(o) { return (o.rowIdx==i); });   
-
                 }
-                for (let i = 0; i < cols.length; i++) {
-                    // let ithRowTDs = lodash.filter(cols, function(o) { return (o.rowIdx==i); });   
 
-                    let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === cols[i].uuid);
-                    while (true) {
-                        let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
-                        if (index2 > -1) {
-                            let colw = this.grandFlatArr[index2].x1 - this.grandFlatArr[index2].x0;
-                            if (colw > maxwidth) maxwidth = colw;
-                        }
-                        index = index + 1;
-                        if (this.grandFlatArrWithClose[index].name === "mtd" && this.grandFlatArrWithClose[index].closeFor != null)
-                            break;
+                // get proper size for each entry (maybe useless)
+                for (let i = 0; i < oneTable.row; i++) {
+                    for (let j = 0; j < oneTable.col; j++) {
+                        let entries = lodash.filter(this.grandFlatArr, function (o) {
+                            return (o.belongToTable != null)
+                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid;
+                        });
+
+                        entries.forEach(element => {
+                            let dx = element.x1 - element.x0;
+                            let dy = element.y1 - element.y0;
+                            let curdx = entriesSize[i][j][0];
+                            let curdy = entriesSize[i][j][1];
+                            if (dx > curdx) curdx = dx;
+                            if (dy > curdy) curdy = dy;
+                            entriesSize[i][j] = [curdx, curdy];
+                            // console.log(i,j,entriesSize[i][j] );
+                        })
                     }
-                    // let colw = cols[i].x1 - cols[i].x0;
-                    // if (colw > maxwidth) maxwidth = colw;
                 }
-                console.log(maxheight, maxwidth);
+                let entries = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.text != null && o.belongToTable.uuid === oneTable.uuid; });
+                entries.forEach(element => {
 
+                    let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
+                    let c = element.colIdx;
+                    let r = element.rowIdx;
 
-
-
-                let index = lodash.findIndex(this.grandFlatArrWithClose, (sub_ele) => sub_ele.uuid === oneTable.uuid);
-                while (true) {
-                    let index2 = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === this.grandFlatArrWithClose[index].uuid);
-
-
-
-                    if (index2 > -1) {
-
-
-
-
-                        let ele = this.grandFlatArr[index2];
-
-
-                        if (ele.name === "mrow") {
-                            let eleh = ele.y1 - ele.y0;
-                            let hidiff = maxheight - eleh;
-                            ele.y1 += hidiff;
-                            let tmpi2 = index + 1;
-
-                        }
-
-
-
-
-
-                        let elewid = ele.x1 - ele.x0;
-                        let widdiff = maxwidth - elewid;
-                        ele.x1 += widdiff;
-                        index2 += 1;
-                        while (index2 < this.grandFlatArr.length) {
-                            this.grandFlatArr[index2].x0 += widdiff;
-                            this.grandFlatArr[index2].x1 += widdiff;
-                            index2 += 1;
-                        }
+                    if (c >= 0 && r >= 0) {
+                        let newxwid = entriesSize[r][c][0];
+                        let newyhei = entriesSize[r][c][1];
+                        const ele = this.grandFlatArr[index];
+                        console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
+                        this.moveDXfromidx(r, c, newxwid, newyhei, index, entriesEle);
                     }
-                    index = index + 1;
-                    if (this.grandFlatArrWithClose[index].name === "mtable" && this.grandFlatArrWithClose[index].closeFor != null &&
-                        this.grandFlatArrWithClose[index].closeFor.uuid == oneTable.uuid)
-                        break;
-                }
-                // let ithRowTDs = lodash.filter(cols, function(o) { return (o.rowIdx==i); });   
 
 
 
+
+
+                });
 
             }
         }
+
+
 
 
     }
@@ -825,7 +866,8 @@ export class MMParser {
         return colIdx;
     }
     markTableInfoinArrAndTree() {
-        this.tableStacksofStack = [];
+        this.tableStacksofStackX = [];
+        this.tableStacksofStackY = [];
         let curOpenedTable = [];
 
 
@@ -840,26 +882,31 @@ export class MMParser {
             if (ele.name == "mtable" && ele.closeFor == null) {
 
                 if (curOpenedTable.length == 0) {
-                    this.tableStacksofStack.push([ele]);
+                    this.tableStacksofStackX.push([ele]);
+                    this.tableStacksofStackY.push([ele]);
                 }
                 else {
                     ele.belongToTable = tmpTableInfo.tab;// mark table in table
                     ele.rowIdx = tmpTableInfo.rowIdx;// mark table in table
                     ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);// mark table in table
-                    this.tableStacksofStack[this.tableStacksofStack.length - 1].push(ele);
+                    this.tableStacksofStackX[this.tableStacksofStackX.length - 1].push(ele);
+                    this.tableStacksofStackY[this.tableStacksofStackY.length - 1].push(ele);
                 }
                 tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
                 curOpenedTable.push(tmpTableInfo);
                 this.grandFlatArrWithClose[i - 2].belongToTable = ele; // marking "["
                 this.grandFlatArrWithClose[i - 2].colIdx = 0; // marking "["
                 this.grandFlatArrWithClose[i - 2].rowIdx = 0; // marking "["
+                this.grandFlatArrWithClose[i - 2].brakectForTab=true;
                 continue;
 
             }
             if (ele.name == "mtable" && ele.closeFor != null) {
-                this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
-                this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
-                this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
+                // this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
+                // this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
+                // this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
+                // this.grandFlatArrWithClose[i + 1].brakectForTab=true;
+
                 curOpenedTable.pop();
                 tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
                 i = i + 1
