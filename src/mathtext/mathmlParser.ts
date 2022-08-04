@@ -206,26 +206,139 @@ export class MMParser {
         let dy = r * rh;
         return [dx, dy];
     }
+    getMinx0Miny0(table, minx0, miny0, changeminx0) {
 
-    moveDxDYfromidx(newxwid: number, newyhei: number, idx: number) {
+        let tableStack = [table];
+
+        while (tableStack.length > 0) {
+            let thisTable = tableStack.pop();
+            console.log("rrr");
+            let entries = lodash.filter(this.grandFlatArr, function (o) {
+                return (o.belongToTable != null &&
+                    o.text != null && o.belongToTable.uuid === thisTable.uuid);
+            });
+
+            console.log("qq");
+
+
+            for (let i = 0; i < entries.length; i++) {
+                let sub_ele: MMFlatStruct = entries[i];
+                if (sub_ele.y0 < miny0) miny0 = sub_ele.y0;
+                if (changeminx0) {
+                    if (sub_ele.x0 < minx0) minx0 = sub_ele.x0;
+                }
+
+            }
+
+
+            let haveParent = lodash.find(this.grandFlatArr, function (o) {
+                return (o.belongToTable != null &&
+                    o.name === "mtable" && o.belongToTable.uuid === thisTable.uuid);
+            });
+
+            if (haveParent != null) {
+                tableStack.push(haveParent);
+            }
+        }
+        return [minx0, miny0];
+
+
+
+        // let miny0 = Number.MAX_SAFE_INTEGER;
+
+        // let minx0 = Number.MAX_SAFE_INTEGER;
+
+
+
+
+    }
+    moveDxDYfromidx(r: number, c: number, newxwid: number, newyhei: number, idx: number, entriesEle: any[]) {
+
+
+
 
         const ele = this.grandFlatArr[idx];
-        let dx = newxwid - (ele.x1 - ele.x0);
-        let dy = newyhei - (ele.y1 - ele.y0);
-
-        ele.x1 += dx;
-        ele.y1 += dy;
-
-
-        for (let i = idx + 1; i < this.grandFlatArr.length; i++) {
-            const ele = this.grandFlatArr[i];
-            if (ele.x0 == null || ele.x1 == null) continue;
-            if (ele.y0 == null || ele.y1 == null) continue;
-            ele.x0 += dx
+        if (r == 0) {
+            let dx = newxwid - (ele.x1 - ele.x0);
+            if (dx < 0) dx = 0;
+            let dy = newyhei - (ele.y1 - ele.y0);
+            if (dy < 0) dy = 0;
             ele.x1 += dx;
-            ele.y0 += dy;
-            ele.y1 += dy;
+            // ele.y1 += dy;
+            for (let i = idx + 1; i < this.grandFlatArr.length; i++) {
+                const sub_ele = this.grandFlatArr[i];
+                sub_ele.x0 += dx
+                sub_ele.x1 += dx;
+                // sub_ele.y0 += dy;
+                // sub_ele.y1 += dy;
+            }
+            return;
         }
+
+        if (r > 0) {
+
+            let miny0 = Number.MAX_SAFE_INTEGER;
+
+            let minx0 = Number.MAX_SAFE_INTEGER;
+            for (let j = 0; j <= c; j++) {
+
+                let aboveEntry: [] = entriesEle[r - 1][j];
+                for (let i = 0; i < aboveEntry.length; i++) {
+                    let sub_ele: MMFlatStruct = aboveEntry[i];
+
+
+                    if (sub_ele.name === "mtable") {
+                        let changeminx0 = (j == c);
+                        [minx0, miny0] = this.getMinx0Miny0(sub_ele, minx0, miny0, changeminx0);
+                    }
+                    else {
+                        if (sub_ele.y0 < miny0) miny0 = sub_ele.y0;
+                        if (j == c) {
+                            if (sub_ele.x0 < minx0) minx0 = sub_ele.x0;
+                        }
+                    }
+
+
+                }
+            }
+            let dy = newyhei - (ele.y1 - ele.y0);
+            // if (dy < 0) dy = 0;
+            let newy0 = (miny0 - newyhei);
+            ele.y0 = newy0;
+            // ele.y1 = newy0 + newyhei;
+
+            return;
+            let newx0 = minx0;
+            let dx = newx0 - ele.x0;
+
+            for (let i = idx + 1; i < this.grandFlatArr.length; i++) {
+                const sub_ele = this.grandFlatArr[i];
+                // if (sub_ele.x0 == null || sub_ele.x1 == null) continue;
+                // if (sub_ele.y0 == null || sub_ele.y1 == null) continue;
+                sub_ele.x0 += dx
+                sub_ele.x1 += dx;
+                // sub_ele.y0 += dy;
+                // sub_ele.y1 += dy;
+            }
+        }
+
+        // let dx = newxwid - (ele.x1 - ele.x0);
+        // if (dx < 0) dx = 0;
+        // let dy = newyhei - (ele.y1 - ele.y0);
+
+        // ele.x1 += dx;
+        // ele.y0 = -newy0;
+
+
+        // for (let i = idx + 1; i < this.grandFlatArr.length; i++) {
+        //     const ele = this.grandFlatArr[i];
+        //     // if (ele.x0 == null || ele.x1 == null) continue;
+        //     // if (ele.y0 == null || ele.y1 == null) continue;
+        //     ele.x0 += dx
+        //     ele.x1 += dx;
+        //     // ele.y0 += dy;
+        //     // ele.y1 += dy;
+        // }
     }
 
     rearrangeXYForTable() {
@@ -235,12 +348,27 @@ export class MMParser {
             while (tablestack.length > 0) {
                 let oneTable = tablestack.pop();
                 let entriesSize = [];
+                let entriesEle = [];
                 for (let i = 0; i < oneTable.row; i++) {
                     entriesSize.push([]);
+                    entriesEle.push([]);
                     for (let j = 0; j < oneTable.col; j++) {
                         entriesSize[entriesSize.length - 1].push([-1, -1]);
+                        let entries = lodash.filter(this.grandFlatArr, function (o) {
+                            return (o.belongToTable != null
+                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
+                        });
+                        let parentTable = lodash.find(this.grandFlatArr, function (o) {
+                            return (o.belongToTable != null && o.name === "mtable"
+                                && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
+                        });
+                        if (parentTable != null) entries.push(parentTable);
+
+                        entriesEle[entriesEle.length - 1].push(entries);
                     }
                 }
+
+                // get proper size for each entry (maybe useless)
                 for (let i = 0; i < oneTable.row; i++) {
                     for (let j = 0; j < oneTable.col; j++) {
                         let entries = lodash.filter(this.grandFlatArr, function (o) {
@@ -266,13 +394,13 @@ export class MMParser {
                     let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
                     let c = element.colIdx;
                     let r = element.rowIdx;
-                    console.log(element.rowIdx, element.colIdx, element.text,r,c);
 
-                    if (c >=0 && r>=0) {
-                        let newxwid = c * entriesSize[r][c][0];
-                        let newyhei = r * entriesSize[r][c][1];
-
-                        this.moveDxDYfromidx(newxwid, newyhei, index);
+                    if (c >= 0 && r >= 0) {
+                        let newxwid = entriesSize[r][c][0];
+                        let newyhei = entriesSize[r][c][1];
+                        const ele = this.grandFlatArr[index];
+                        console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
+                        this.moveDxDYfromidx(r, c, newxwid, newyhei, index, entriesEle);
                     }
 
 
@@ -715,21 +843,23 @@ export class MMParser {
                     this.tableStacksofStack.push([ele]);
                 }
                 else {
-                    ele.belongToTable = tmpTableInfo.tab;
+                    ele.belongToTable = tmpTableInfo.tab;// mark table in table
+                    ele.rowIdx = tmpTableInfo.rowIdx;// mark table in table
+                    ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);// mark table in table
                     this.tableStacksofStack[this.tableStacksofStack.length - 1].push(ele);
                 }
                 tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
                 curOpenedTable.push(tmpTableInfo);
                 this.grandFlatArrWithClose[i - 2].belongToTable = ele; // marking "["
-                this.grandFlatArrWithClose[i - 2].colIdx = -1; // marking "["
-                this.grandFlatArrWithClose[i - 2].rowIdx = -1; // marking "["
+                this.grandFlatArrWithClose[i - 2].colIdx = 0; // marking "["
+                this.grandFlatArrWithClose[i - 2].rowIdx = 0; // marking "["
                 continue;
 
             }
             if (ele.name == "mtable" && ele.closeFor != null) {
                 this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
-                this.grandFlatArrWithClose[i + 1].colIdx = -1; // marking "]"
-                this.grandFlatArrWithClose[i + 1].rowIdx = -1; // marking "]"
+                this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
+                this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
                 curOpenedTable.pop();
                 tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
                 i = i + 1

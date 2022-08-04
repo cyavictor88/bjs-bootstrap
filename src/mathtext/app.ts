@@ -106,7 +106,7 @@ class App {
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
         // \\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}=\\vec{a_z}=\\
         // var [mathml,mmp]=trykatex("\\begin{bmatrix} \\begin{bmatrix} 1_{xy} & 2_x \\\\ a & b \\end{bmatrix} & 3 & 6 \\\\ a & b & c \\\\ z & w & q  \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
-        var [mathml,mmp]=trykatex(" \\begin{bmatrix} \\begin{bmatrix} q & k \\\\ p & e \\end{bmatrix} & 3 & 6 \\\\ a & b & c \\\\ z & w & q  \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
+        var [mathml,mmp]=trykatex("\\begin{bmatrix} 1_{xy} & 2_x & 3 \\\\ a & b & c \\end{bmatrix}= \\begin{bmatrix} \\begin{bmatrix} q & k \\\\ p & e \\end{bmatrix} & 3 & 6 \\\\ a & b & c \\\\ z & w & q  \\\\ 8 & 8 & 8 \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
         // var [mathml,mmp]=trykatex("\\lim_{x\\to\\infty} sin(\\theta)=  \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
         //  var [mathml,mmp]=trykatex("HHHHHHHH");
         
