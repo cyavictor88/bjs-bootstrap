@@ -31,6 +31,7 @@ enum LBlockType {
     mrow = "mrow",
     mstyle = "mstyle",
     mtext = "mtext",
+    mdummy="mdummy",
 
 }
 export interface MEle {
@@ -58,9 +59,25 @@ export interface MTag {
     text?: string,
 };
 
+export interface BlockXY{
+    x0?: number,
+    y0?: number,
+    x1?: number,
+    y1?: number,
+
+    miny0?: number,
+    maxy1?: number,
+    minx0?: number,
+    maxx1?: number,
+    scale?:number,
+}
+
 export interface MMFlatStruct {
     lvl: number,
     name: string,
+
+    blockxy?:BlockXY,
+
     text?: string,
     attriArr?: MAttriDet[],
     uuid?: string,
@@ -144,6 +161,9 @@ export class MMParser {
     public tableStacksofStackY: MMFlatStruct[][];
     public tableStacksofStackX: MMFlatStruct[][];
 
+    public tableTree: LBlock;
+    // public tableTree
+
 
 
     constructor(mathmlXml: []) {
@@ -155,6 +175,11 @@ export class MMParser {
         this.parsedStringArr = [];
         this.tableStacksofStackX = [];
         this.tableStacksofStackY = [];
+        // this.tableTree= { idxInArray:-1,scale:1,uuid: uuidv4.uuid(), type:LBlockType.mdummy, children:[]};
+
+
+
+        // this.tableTree;
 
 
         this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
@@ -176,24 +201,29 @@ export class MMParser {
 
 
         this.turnGrandFlatArrToGrandLBlockTree();
+        
         this.addBlockStartEndToGRandBlockTree();
+        // this.addBlockStartEndToArr();
+
+
 
 
         this.putBlockStartEndToGrandFlatArr(this.grandLBlockTree);
 
 
 
-        this.markTableInfoinArrAndTree();
+        this.markTableInfoinArr();
+        // this.assembleTableTree();
 
 
         this.rearrangeYForTable();
-        this.rearrangeXForTable();
+        // this.rearrangeXForTable();
 
 
-        // console.log(this.grandLBlockTree);
+        // blockxyconsole.log(this.grandLBlockTree);
 
 
-        // this.iterateGrandBlockTree(this.grandLBlockTree, "");
+        this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
         console.log(this.grandFlatArrWithClose);
 
@@ -202,7 +232,24 @@ export class MMParser {
 
 
     }
-    addRowColAttriForTablesInClosedFlatArrs() {
+    addBlockStartEndToArr() {
+        let curTable: MMFlatStruct = { name: "dummyTab", lvl: -1, col: 1, row: 1 };
+        let tableStack = [];
+
+        let bxy:BlockXY={x0:0,y0:0};
+
+
+        this.grandFlatArrWithClose.forEach((ele,idx) => {
+
+            
+            ele.blockxy={x0:bxy.x0,y0:bxy.y0};
+
+
+
+
+            
+        });
+
 
     }
 
@@ -281,9 +328,10 @@ export class MMParser {
             let miny0 = Number.MAX_SAFE_INTEGER;
 
             let minx0 = Number.MAX_SAFE_INTEGER;
-            for (let j = 0; j <= c; j++) {
+            for (let j = 0; j <= ele.col; j++) {
 
                 let aboveEntry: [] = entriesEle[r - 1][j];
+                if(aboveEntry==null)continue;
                 for (let i = 0; i < aboveEntry.length; i++) {
                     let sub_ele: MMFlatStruct = aboveEntry[i];
 
@@ -570,6 +618,12 @@ export class MMParser {
             if (block.x0 != null) blockInArray.x0 = block.x0;
             if (block.x1 != null) blockInArray.x1 = block.x1;
             if (block.scale != null) blockInArray.scale = block.scale;
+
+
+            blockInArray.blockxy={x0:block.x0,x1:block.x1,y0:block.y0,y1:block.y1,scale:block.scale,
+                                        minx0:block.minx0,miny0:block.miny0,maxx1:block.maxx1,maxy1:block.maxy1
+            };
+            console.log(blockInArray.name,blockInArray.blockxy);
         }
 
 
@@ -673,18 +727,20 @@ export class MMParser {
     }
 
     iterateGrandBlockTree(block: LBlock, pad: string) {
+        console.log( block.idxInArray);
         if (block.children != null && block.children.length > 0) {
 
             block.children.forEach((child, idx) => {
-                console.log(child.type.toString() + pad + " yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3)
-                    + " xrange:[" + child.minx0.toFixed(3) + "," + child.maxx1.toFixed(3) + "]");
+               // console.log(child.type.toString() + pad + " " + child.lvl+" yrange:[" + child.miny0.toFixed(3) + "," + child.maxy1.toFixed(3)
+              //      + " xrange:[" + child.minx0.toFixed(3) + "," + child.maxx1.toFixed(3) + "]");
+              
                 this.iterateGrandBlockTree(child, pad + " ");
             });
-            console.log(" ");
+            console.log("children depleted lvl:"+block.lvl);
         }
         else if (block.text != null) {
 
-            console.log(block.type.toString() + pad + " text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
+            console.log(block.idxInArray+" "+block.type.toString() + pad + " " + block.lvl+" "+"text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
         }
         else {
             throw ('som ting wong');
@@ -865,7 +921,90 @@ export class MMParser {
         let colIdx = curTotalMTDcnt % numCol;
         return colIdx;
     }
-    markTableInfoinArrAndTree() {
+    // assembleTableTree(){
+    //     this.tableTree= { idxInArray:-1,scale:1,uuid: uuidv4.uuid(), type:LBlockType.mdummy, children:[], lvl:-1};
+
+    //     let currentNode=this.tableTree;
+    //     let preLevelNode=undefined ;
+
+    //     let tableClosed = true;
+
+
+    //     for  (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
+    //         const ele = this.grandFlatArrWithClose[i];
+    //         if (ele.name == "mtable" && ele.closeFor == null) {
+    //             if(tableClosed)
+    //             {
+                    
+    //                 currentNode.children.push(  )
+    //             }
+
+
+    //             if (curOpenedTable.length == 0) {
+    //                 this.tableStacksofStackX.push([ele]);
+    //                 this.tableStacksofStackY.push([ele]);
+    //             }
+    //             else {
+    //                 ele.belongToTable = tmpTableInfo.tab;// mark table in table
+    //                 ele.rowIdx = tmpTableInfo.rowIdx;// mark table in table
+    //                 ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);// mark table in table
+    //                 this.tableStacksofStackX[this.tableStacksofStackX.length - 1].push(ele);
+    //                 this.tableStacksofStackY[this.tableStacksofStackY.length - 1].push(ele);
+    //             }
+    //             tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
+    //             curOpenedTable.push(tmpTableInfo);
+    //             this.grandFlatArrWithClose[i - 2].belongToTable = ele; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].colIdx = 0; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].rowIdx = 0; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].brakectForTab=true;
+    //             continue;
+
+    //         }
+    //         if (ele.name == "mtable" && ele.closeFor != null) {
+    //             // this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].brakectForTab=true;
+
+    //             curOpenedTable.pop();
+    //             tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
+    //             i = i + 1
+    //             continue;
+    //         }
+    //         if (curOpenedTable.length == 0 || ele.closeFor != null) continue;
+
+
+    //         ele.belongToTable = tmpTableInfo.tab;
+    //         ele.col = ele.belongToTable.col;
+    //         ele.row = ele.belongToTable.row;
+
+    //         // if(ele.name==="mtr" || ele.name==="mtd" ){
+    //         //     ele.belongToTable = tmpTableInfo.tab;
+    //         //     ele.col=ele.belongToTable.col;
+    //         //     ele.row=ele.belongToTable.row;
+    //         // }
+
+    //         if (ele.name === "mtr") {
+    //             tmpTableInfo.rowIdx += 1;
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //         }
+    //         else if (ele.name === "mtd") {
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //             tmpTableInfo.colIdx += 1;
+    //             ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+    //         }
+    //         else {
+    //             // ele.belongToTable = tmpTableInfo.tab;
+    //             // ele.col=ele.belongToTable.col;
+    //             // ele.row=ele.belongToTable.row;
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //             ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+    //         }
+    //     }
+
+    // }
+
+    markTableInfoinArr() {
         this.tableStacksofStackX = [];
         this.tableStacksofStackY = [];
         let curOpenedTable = [];
@@ -1160,7 +1299,7 @@ export class MMParser {
 
             if (ele.closeFor == null) {
                 let parentOfnewLBlock = parentOfnewLBlockArr[ele.lvl - 1];
-                let newLBlock: LBlock = { parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name], uuid: ele.uuid, idxInArray: i };
+                let newLBlock: LBlock = { lvl:ele.lvl ,parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name], uuid: ele.uuid, idxInArray: i };
                 switch (ele.name) {
                     case LBlockType.mo:
                         newLBlock["text"] = ele.text;
@@ -1280,7 +1419,7 @@ export class MMParser {
 
         if (curNode.text != null) {
             str += " text:" + curNode.text;
-            if (curNode.text.toString().charCodeAt(0).toString(16).padStart(4, "0") == "2061") curNode.text = " ";
+            if (curNode.text.toString().charCodeAt(0).toString(16).padStart(4, "0") == "2061") curNode.text = " "; //  null space
             mmstruct.text = curNode.text;
         }
         if (curNode.attriArr != null) {
