@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const appDirectory = fs.realpathSync(process.cwd());
 // const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 module.exports = {
+    devtool: 'inline-source-map',  // vic to surpress firefox thousands of warning about "Source Maps not working with Webpack" https://stackoverflow.com/questions/37928165/source-maps-not-working-with-webpack
     entry: path.resolve(appDirectory, "src/mathtext/app.ts"), //path to the main .ts file
     output: {
         filename: "js/mathtext.js", //name for the js file that is created/compiled in memory
