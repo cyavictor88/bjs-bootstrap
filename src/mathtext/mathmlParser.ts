@@ -1,5 +1,6 @@
 import { DefaultRenderingPipeline, RegisterMaterialPlugin, TimerState } from '@babylonjs/core';
 import { Scene } from '@babylonjs/core/scene';
+import { CommonShadowLightPropertyGridComponent } from '@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/lights/commonShadowLightPropertyGridComponent';
 import * as lodash from 'lodash';
 import { transform } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
@@ -48,7 +49,11 @@ export interface MAttriDet {
 }
 
 
-
+export interface TabInfo {
+    colIdx: number,
+    rowIdx: number,
+    tab: MMFlatStruct
+}
 
 export interface MTag {
     name: string,
@@ -108,6 +113,9 @@ export interface MMFlatStruct {
     brakectForTab?: boolean,
 
     belongArr?: MMFlatStruct[],
+    tabs?: TabInfo[],
+
+
 
 };
 
@@ -189,10 +197,10 @@ export class MMParser {
         this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
 
         this.assembleGrandMTagNode();
-        console.log(this.grandMTagNode);
+        // console.log(this.grandMTagNode);
 
         this.assembleGrandFlatArr(this.grandMTagNode);
-        console.log(this.grandFlatArr);
+        // console.log(this.grandFlatArr);
 
         this.assembleGrandFlatWithCloseArr();
 
@@ -201,7 +209,7 @@ export class MMParser {
 
 
         // console.log(this.grandFlatArrWithClose);
-        console.log(this.grandFlatArr);
+        // console.log(this.grandFlatArr);
 
 
         this.turnGrandFlatArrToGrandLBlockTree();
@@ -216,20 +224,25 @@ export class MMParser {
 
 
 
-        this.markTableInfoinArr();
-      //  this.fillinBelongArr();
+        // this.markTableInfoinArr();
+        this.fillinBelongArr();
 
 
-        this.rearrangeYForTable();
+        // this.rearrangeYForTable();
         // this.rearrangeXForTable();
 
 
         // blockxyconsole.log(this.grandLBlockTree);
 
 
-        this.iterateGrandBlockTree(this.grandLBlockTree, "");
+        // this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
-        console.log(this.grandFlatArrWithClose);
+        this.grandFlatArr.forEach(element => {
+            if (element.text!=null ) {
+                console.log(element.text)
+                console.log(element.tabs)
+            }
+        });
 
 
         // console.log(mathmlXml);
@@ -932,42 +945,59 @@ export class MMParser {
 
 
     fillinBelongArr() {
-        let owners: MMFlatStruct[];
+        let owners: MMFlatStruct[] = [];
+        let tabsinfo: TabInfo[] = [];
         for (let i = 0; i < this.grandFlatArrWithClose.length; i++) {
             const ele = this.grandFlatArrWithClose[i];
+
+            if (ele.tabs == undefined) {
+                ele.tabs = [];
+            }
+            if (ele.belongArr == undefined) {
+                ele.belongArr = [];
+            }
             if (ele.name == "mtable" && ele.closeFor == null) {
                 owners.push(ele);
+                tabsinfo.push({ rowIdx: -1, colIdx: -1, tab: ele });
+
 
 
             }
             else if (ele.name == "mtable" && ele.closeFor != null) {
-                owners=lodash.remove(owners,     (owner)=> owner.uuid===ele.closeFor.uuid)
+                lodash.remove(owners, function (owner) { return owner.uuid === ele.closeFor.uuid });
+                lodash.remove(tabsinfo, function (tmptabinfo) { return tmptabinfo.tab.uuid === ele.closeFor.uuid });
             }
-            else
-            {
+            else {
+
                 owners.forEach(ele2 => {
                     ele.belongArr.push(ele2);
                 });
+
+
             }
-            
+
+            if (tabsinfo.length < 1) continue;
+
+            let mostRecentTabInfo = tabsinfo[tabsinfo.length - 1];
+            if (ele.name === "mtr" && ele.closeFor == null) {
+                mostRecentTabInfo.rowIdx += 1;
+            }
+            if (ele.name === "mtd" && ele.closeFor == null) {
+                mostRecentTabInfo.colIdx += 1;
+            }
+            if(ele.closeFor != null) continue;
+            mostRecentTabInfo.colIdx=this.getColIdx(mostRecentTabInfo.colIdx, mostRecentTabInfo.tab.col);;
+            tabsinfo.forEach(tmptab => {
+                ele.tabs.push({ colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx, tab: tmptab.tab });
+            });
+
+
+
 
         }
 
 
-        // for (let index = 0; index < owners.length; index++) {
-        //     const element: MMFlatStruct = owners[index];
-        //     block.belongArr.push(element);
-        // }
-        // if (block.children != null && block.children.length > 0) {
-        //     if (block.type == LBlockType.mtable) {
-        //         owners.push(this.grandFlatArr[block.idxInArray]);
-        //     }
-        //     block.children.forEach((child, idx) => {
 
-        //         this.fillinBelongArr(child, owners);
-
-        //     });
-        // }
 
 
 
@@ -1260,7 +1290,7 @@ export class MMParser {
 
     };
     turnGrandFlatArrToGrandLBlockTree() {
-        this.grandLBlockTree = { children: [], lvl: 0, scale: 1, type: LBlockType.mrow, uuid: this.grandFlatArr[0].uuid, idxInArray: 0 ,belongArr:[]};
+        this.grandLBlockTree = { children: [], lvl: 0, scale: 1, type: LBlockType.mrow, uuid: this.grandFlatArr[0].uuid, idxInArray: 0, belongArr: [] };
         let parentOfnewLBlockArr = [this.grandLBlockTree];
 
         for (let i = 1; i < this.grandFlatArr.length; i += 1) {
@@ -1268,7 +1298,7 @@ export class MMParser {
 
             if (ele.closeFor == null) {
                 let parentOfnewLBlock = parentOfnewLBlockArr[ele.lvl - 1];
-                let newLBlock: LBlock = { lvl: ele.lvl, parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name], uuid: ele.uuid, idxInArray: i ,belongArr:[]};
+                let newLBlock: LBlock = { lvl: ele.lvl, parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.name], uuid: ele.uuid, idxInArray: i, belongArr: [] };
                 switch (ele.name) {
                     case LBlockType.mo:
                         newLBlock["text"] = ele.text;
@@ -1359,7 +1389,7 @@ export class MMParser {
 
 
     assembleGrandFlatWithCloseArr() {
-        let lastNode: MMFlatStruct = { name: this.grandFlatArr[0].name, lvl: this.grandFlatArr[0].lvl ,belongArr:[]};
+        let lastNode: MMFlatStruct = { name: this.grandFlatArr[0].name, lvl: this.grandFlatArr[0].lvl, belongArr: [] };
         this.grandFlatArr.push(lastNode);
         let prevLvl = -1;
         for (let i = 0; i < this.grandFlatArr.length; i++) {
@@ -1368,7 +1398,7 @@ export class MMParser {
                 let j = prevLvl;
                 while (j >= curEle.lvl) {
                     const lastOpenEleAtLvlj = this.findLastOpenEleAtlvl(j);
-                    let eleThatClose: MMFlatStruct = { name: lastOpenEleAtLvlj.name, lvl: lastOpenEleAtLvlj.lvl, closeFor: lastOpenEleAtLvlj,belongArr:[] };
+                    let eleThatClose: MMFlatStruct = { name: lastOpenEleAtLvlj.name, lvl: lastOpenEleAtLvlj.lvl, closeFor: lastOpenEleAtLvlj, belongArr: [] };
                     this.grandFlatArrWithClose.push(eleThatClose);
                     j -= 1;
                 }
@@ -1381,7 +1411,7 @@ export class MMParser {
     }
 
     assembleGrandFlatArr(curNode: MTag) {
-        var mmstruct: MMFlatStruct = { uuid: uuidv4().toString(), lvl: curNode.lvl, name: curNode.name , belongArr:[]};
+        var mmstruct: MMFlatStruct = { uuid: uuidv4().toString(), lvl: curNode.lvl, name: curNode.name, belongArr: [] };
 
         let str = "lvl:" + curNode.lvl + " name:" + curNode.name;
 
