@@ -13,6 +13,11 @@ enum MEleType {
     Text = 2,
 }
 
+enum Position {
+    Down = 0,
+    Mid = 1,
+    Up = 2
+}
 
 enum LBlockType {
     mtable = "mtable",
@@ -48,6 +53,14 @@ export interface MAttriDet {
     val: any,
 }
 
+
+
+export interface OwnedDetail {
+    type: LBlockType,
+    tabDetail?: TabInfo,
+    pos?: Position,
+
+}
 
 export interface TabInfo {
     colIdx: number,
@@ -114,6 +127,7 @@ export interface MMFlatStruct {
 
     belongArr?: MMFlatStruct[],
     tabs?: TabInfo[],
+    ownedDetails?: OwnedDetail[]
 
 
 
@@ -238,13 +252,13 @@ export class MMParser {
         // this.iterateGrandBlockTree(this.grandLBlockTree, "");
 
         this.grandFlatArr.forEach(element => {
-            if (element.text!=null ) {
+            if (element.text != null) {
                 console.log(element.text)
-                console.log(element.tabs)
+                console.log(element.ownedDetails)
             }
         });
 
-
+        //main
         // console.log(mathmlXml);
 
 
@@ -848,6 +862,12 @@ export class MMParser {
             if (idx == 1) return [block.children[0].x0, y0 - .75 * block.children[0].scale];
             else throw ("msubsup wrong");
         }
+
+
+        if (type === LBlockType.mfrac) {
+            if (idx == 0) return [x0, y0 + 0.5 * block.scale];
+            if (idx == 1) return [block.children[0].x0, y0 - 0.5 * block.scale];
+        }
         return [x0, y0];
     }
 
@@ -946,26 +966,41 @@ export class MMParser {
 
     fillinBelongArr() {
         let owners: MMFlatStruct[] = [];
-        let tabsinfo: TabInfo[] = [];
+        // let tabsinfo: TabInfo[] = [];
+
+        let ownedDetailsinfo: OwnedDetail[] = [];
+
+
+        let curLvl=0;
         for (let i = 0; i < this.grandFlatArrWithClose.length; i++) {
             const ele = this.grandFlatArrWithClose[i];
 
             if (ele.tabs == undefined) {
                 ele.tabs = [];
             }
+            if (ele.ownedDetails == undefined) {
+                ele.ownedDetails = [];
+            }
             if (ele.belongArr == undefined) {
                 ele.belongArr = [];
             }
+
+
+            // if(ele.name=="mfrac"   )
+            // {
+
+            // }
+
+
             if (ele.name == "mtable" && ele.closeFor == null) {
                 owners.push(ele);
-                tabsinfo.push({ rowIdx: -1, colIdx: -1, tab: ele });
-
-
-
+                // tabsinfo.push({ rowIdx: -1, colIdx: -1, tab: ele });
+                ownedDetailsinfo.push({ type: LBlockType.mtable, tabDetail: { rowIdx: -1, colIdx: -1, tab: ele } });
             }
             else if (ele.name == "mtable" && ele.closeFor != null) {
                 lodash.remove(owners, function (owner) { return owner.uuid === ele.closeFor.uuid });
-                lodash.remove(tabsinfo, function (tmptabinfo) { return tmptabinfo.tab.uuid === ele.closeFor.uuid });
+                // lodash.remove(tabsinfo, function (tmptabinfo) { return tmptabinfo.tab.uuid === ele.closeFor.uuid });
+                lodash.remove(ownedDetailsinfo, function (tmp) { return tmp.tabDetail.tab.uuid === ele.closeFor.uuid });
             }
             else {
 
@@ -976,21 +1011,34 @@ export class MMParser {
 
             }
 
-            if (tabsinfo.length < 1) continue;
-
-            let mostRecentTabInfo = tabsinfo[tabsinfo.length - 1];
-            if (ele.name === "mtr" && ele.closeFor == null) {
-                mostRecentTabInfo.rowIdx += 1;
+            if (ownedDetailsinfo.length < 1) continue;
+            // if (tabsinfo.length < 1) continue;
+            // let mostRecentTabInfo = tabsinfo[tabsinfo.length - 1];
+            let lastTableDetailIndex = lodash.findLastIndex(ownedDetailsinfo, function (tmp) { return tmp.type == LBlockType.mtable });
+            if (lastTableDetailIndex > -1) {
+                let mostRecentTabInfo = ownedDetailsinfo[ownedDetailsinfo.length - 1].tabDetail;
+                if (ele.name === "mtr" && ele.closeFor == null) {
+                    mostRecentTabInfo.rowIdx += 1;
+                }
+                if (ele.name === "mtd" && ele.closeFor == null) {
+                    mostRecentTabInfo.colIdx += 1;
+                }
+                if (ele.closeFor != null) continue;
+                mostRecentTabInfo.colIdx = this.getColIdx(mostRecentTabInfo.colIdx, mostRecentTabInfo.tab.col);
+                // tabsinfo.forEach(tmptab => {
+                //     ele.tabs.push({ colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx, tab: tmptab.tab });
+                // });
+                ownedDetailsinfo.forEach(tmpDetail => {
+                    if (tmpDetail.type == LBlockType.mtable) {
+                        let tmptab = tmpDetail.tabDetail;
+                        ele.ownedDetails.push({ type: LBlockType.mtable, tabDetail: { colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx, tab: tmptab.tab } });
+                    }
+                    else
+                    {
+                        ele.ownedDetails.push(tmpDetail);
+                    }
+                });
             }
-            if (ele.name === "mtd" && ele.closeFor == null) {
-                mostRecentTabInfo.colIdx += 1;
-            }
-            if(ele.closeFor != null) continue;
-            mostRecentTabInfo.colIdx=this.getColIdx(mostRecentTabInfo.colIdx, mostRecentTabInfo.tab.col);;
-            tabsinfo.forEach(tmptab => {
-                ele.tabs.push({ colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx, tab: tmptab.tab });
-            });
-
 
 
 
