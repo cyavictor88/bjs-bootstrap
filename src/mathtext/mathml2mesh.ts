@@ -200,7 +200,7 @@ export class MathMlStringMesh {
 
     public drawSquare(): void {
 
-
+        return
         let customMesh = new BABYLON.Mesh("abox", this.scene);
         customMesh.layerMask = this.masklayer;
         var positions = [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0];

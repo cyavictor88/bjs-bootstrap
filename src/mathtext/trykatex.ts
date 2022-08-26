@@ -22,7 +22,7 @@ export function recuIterdp(node) {
 
 
 
-export function trykatex(input) {
+export function trykatex(input):[any,MathmlParser.MMParser] {
     // var element = document.createElement("p");
     // katex.render("zz = \\pm\\sqrt{a^2 + b^2}", element, {
     //     throwOnError: false,
