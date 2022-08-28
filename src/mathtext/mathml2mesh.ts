@@ -158,7 +158,7 @@ export class MathMlStringMesh {
     public toTransedMesh() {
 
         let trans = { x: this.stringBoundingBox.x0, y: this.stringBoundingBox.y0 , z: 5 };
-        var scale = { x: (this.stringBoundingBox.x1 - this.stringBoundingBox.x0), y: (this.stringBoundingBox.y1 - this.stringBoundingBox.y0), z: 1 };
+        // var scale = { x: (this.stringBoundingBox.x1 - this.stringBoundingBox.x0), y: (this.stringBoundingBox.y1 - this.stringBoundingBox.y0), z: 1 };
         var scale = { x: this.scale, y: this.scale, z: this.scale };
         for (let i = 0; i < this.jsonMeshes.length; i++) {
             let customMesh = new BABYLON.Mesh("custom" + this.jsonMeshes[i].char, this.scene);

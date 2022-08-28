@@ -197,6 +197,7 @@ export class MMParser {
     public tableStacksofStackY: MMFlatStruct[][];
     public tableStacksofStackX: MMFlatStruct[][];
     public tableTree: LBlock;
+    public lvlStack: LBlock[];
     // public tableTree
 
 
@@ -682,6 +683,8 @@ export class MMParser {
         }
 
     }
+
+
     putinSceneArray(scene: Scene, layerMask: number) {
         let xoffset = -30;
         let xscale = 0.6;
@@ -774,7 +777,7 @@ export class MMParser {
     iterateGrandBlockTree2(initblock: LBlock) {
 
 
-        let lvlStack = [];
+        let localLvlStack : LBlock[]= [];
         let stack = [initblock];
         while (stack.length > 0) {
             let block = stack.shift();
@@ -783,35 +786,70 @@ export class MMParser {
             // if(block.text!=null)
             // console.log(block.text);
             // block.edim=new ED.EDim(block,this.grandFlatArr);
-            lvlStack.push(block);
+            localLvlStack.push(block);
 
             if (block.children != null && block.children.length > 0) {
                 block.children.forEach((child, idx) => {
                     stack.push(child);
                 });
-
-
             }
         }
-        lodash.reverse(lvlStack);
-        lvlStack.forEach(block => {
+
+        // making edim from leaves
+        lodash.reverse(localLvlStack);
+        localLvlStack.forEach(block => {
             block.edim=new ED.EDim(block,this.grandFlatArr);
         });
+        console.log("=============");
+        lodash.reverse(localLvlStack);
 
-        lvlStack.forEach(block => {
-            // console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
-            // console.log(block.edim.dim.scale);
+        localLvlStack.forEach(block => {
+            console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
+            console.log(block.edim.dim.scale);
             if (block.text != null)
             {
                 console.log(block.text);
                 console.log(block.edim.dim.xs)
                 console.log(block.edim.dim.ys)
                 console.log("-----");
-
-
             }
         });
 
+        this.lvlStack=localLvlStack;
+
+
+    }
+
+
+    putinSceneArrayWithED(scene: Scene, layerMask: number) {
+        let xoffset = -40;
+        let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
+
+
+        for (let i = 0; i < this.lvlStack.length; i++) {
+            const ele = this.lvlStack[i];
+
+            if (ele.text != null) {
+                //console.log(ele.type.toString() + " text:" + ele.text + " scale:" + ele.scale.toFixed(3) + " x:[" + ele.x0.toFixed(3) + "," + ele.x1.toFixed(3) + "]" + " y:[" + ele.y0.toFixed(3) + "," + ele.y1 + "]");
+
+
+                let xinterval = (ele.x1 - ele.x0) / ele.text.toString().length;
+                for (let i = 0; i < ele.text.toString().length; i++) {
+                    const char = ele.text.toString()[i];
+                    // let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: (ele.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: ele.y0, y1: ele.y1 };
+                    let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: -1, y0: ele.y0, y1: -1 };
+                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale);
+                    mathtxts.toTransedMesh();
+                }
+
+
+
+
+                // let mathtxts = new MathText.MathString(text, scene, layerMask);
+            }
+
+
+        }
 
     }
 
