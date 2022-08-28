@@ -137,17 +137,16 @@ export class EDim {
                 else if (idx == 1) {
                     let newscale = .75;
                     let delx = x1 - dim.xs[0];
-                    let dely=0;
+                    let dely = 0;
                     if(block.type == MP.LBlockType.msub)
                     {
                         dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
                     else if(block.type == MP.LBlockType.msup)
                     {
-                        dely = y1-y0-0.5*(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                        dely = ( y1-y0 )-0.5*(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
-                    // child.edim.scaleAndMove(newscale, delx, dely);
                 }
             });
             let xys = this.getxys();
@@ -161,7 +160,6 @@ export class EDim {
                 if(ownedDetail.tabDetail!=null)
                 {
                     console.log("tabde:",ownedDetail.tabDetail.rowIdx, " ", ownedDetail.tabDetail.colIdx);
-                    
                 }
                 
             }
