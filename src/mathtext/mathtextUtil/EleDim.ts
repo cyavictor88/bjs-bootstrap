@@ -109,13 +109,9 @@ export class EDim {
                 if (dim.ys[0] < y0) y0 = dim.ys[0];
                 if (dim.ys[1] > y1) y1 = dim.ys[1];
 
-
                 x0 = child.edim.dim.xs[1];
                 if (child.edim.dim.text != null)
                     console.log(child.edim.dim.text, " new x0:", x0);
-
-
-
 
             });
             return { scale: 1, xs: [block.children[0].edim.dim.xs[0], x0], ys: [y0, y1] };
@@ -146,7 +142,7 @@ export class EDim {
                     {
                         dely = ( y1-y0 )-0.5*(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
-                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                    child.edim.spatialTrans( { delx: delx, dely: dely }, newscale, true);
                 }
             });
             let xys = this.getxys();
