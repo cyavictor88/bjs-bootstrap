@@ -67,7 +67,8 @@ export interface OwnedDetail {
 export interface TabInfo {
     colIdx: number,
     rowIdx: number,
-    // tab: MMFlatStruct
+
+    tab: MMFlatStruct
 }
 
 export interface MTag {
@@ -109,8 +110,8 @@ export interface MMFlatStruct {
 
 
     belongToTable?: MMFlatStruct,
-    colIdx?: number,
-    rowIdx?: number,
+    // colIdx?: number,
+    // rowIdx?: number,
 
 
     x0?: number,
@@ -238,13 +239,15 @@ export class MMParser {
 
         this.turnGrandFlatArrToGrandLBlockTree();
 
-        this.addBlockStartEndToGRandBlockTree();
+       //this.addBlockStartEndToGRandBlockTree();
+       
+       
         // this.addBlockStartEndToArr();
 
 
 
 
-        this.putBlockStartEndToGrandFlatArr(this.grandLBlockTree);
+        //this.putBlockStartEndToGrandFlatArr(this.grandLBlockTree);
 
 
 
@@ -272,7 +275,8 @@ export class MMParser {
         //main
         // console.log(mathmlXml);
 
-        this.iterateGrandBlockTree2(this.grandLBlockTree);
+        // using grandblocktree, assemble lvlstack which contains dimension for chars
+        this.assembleLvlStack(this.grandLBlockTree);
 
 
 
@@ -438,81 +442,81 @@ export class MMParser {
         // }
     }
 
-    rearrangeYForTable() {
-        while (this.tableStacksofStackY.length > 0) {
-            let tablestack = this.tableStacksofStackY.pop();
-            console.log("new tablestack:");
-            while (tablestack.length > 0) {
-                let oneTable = tablestack.pop();
-                let entriesSize = [];
-                let entriesEle = [];
-                for (let i = 0; i < oneTable.row; i++) {
-                    entriesSize.push([]);
-                    entriesEle.push([]);
-                    for (let j = 0; j < oneTable.col; j++) {
-                        entriesSize[entriesSize.length - 1].push([-1, -1]);
-                        let entries = lodash.filter(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null
-                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
-                        });
-                        let parentTable = lodash.find(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null && o.type == LBlockType.mtable
-                                && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
-                        });
-                        if (parentTable != null) entries.push(parentTable);
+    // rearrangeYForTable() {
+    //     while (this.tableStacksofStackY.length > 0) {
+    //         let tablestack = this.tableStacksofStackY.pop();
+    //         console.log("new tablestack:");
+    //         while (tablestack.length > 0) {
+    //             let oneTable = tablestack.pop();
+    //             let entriesSize = [];
+    //             let entriesEle = [];
+    //             for (let i = 0; i < oneTable.row; i++) {
+    //                 entriesSize.push([]);
+    //                 entriesEle.push([]);
+    //                 for (let j = 0; j < oneTable.col; j++) {
+    //                     entriesSize[entriesSize.length - 1].push([-1, -1]);
+    //                     let entries = lodash.filter(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null
+    //                             && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
+    //                     });
+    //                     let parentTable = lodash.find(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null && o.type == LBlockType.mtable
+    //                             && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
+    //                     });
+    //                     if (parentTable != null) entries.push(parentTable);
 
-                        entriesEle[entriesEle.length - 1].push(entries);
-                    }
-                }
+    //                     entriesEle[entriesEle.length - 1].push(entries);
+    //                 }
+    //             }
 
-                // get proper size for each entry (maybe useless)
-                for (let i = 0; i < oneTable.row; i++) {
-                    for (let j = 0; j < oneTable.col; j++) {
-                        let entries = lodash.filter(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null)
-                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid;
-                        });
+    //             // get proper size for each entry (maybe useless)
+    //             for (let i = 0; i < oneTable.row; i++) {
+    //                 for (let j = 0; j < oneTable.col; j++) {
+    //                     let entries = lodash.filter(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null)
+    //                             && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid;
+    //                     });
 
-                        entries.forEach(element => {
-                            let dx = element.x1 - element.x0;
-                            let dy = element.y1 - element.y0;
-                            let curdx = entriesSize[i][j][0];
-                            let curdy = entriesSize[i][j][1];
-                            if (dx > curdx) curdx = dx;
-                            if (dy > curdy) curdy = dy;
-                            entriesSize[i][j] = [curdx, curdy];
-                            // console.log(i,j,entriesSize[i][j] );
-                        })
-                    }
-                }
-                let entries = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.text != null && o.belongToTable.uuid === oneTable.uuid; });
-                entries.forEach(element => {
+    //                     entries.forEach(element => {
+    //                         let dx = element.x1 - element.x0;
+    //                         let dy = element.y1 - element.y0;
+    //                         let curdx = entriesSize[i][j][0];
+    //                         let curdy = entriesSize[i][j][1];
+    //                         if (dx > curdx) curdx = dx;
+    //                         if (dy > curdy) curdy = dy;
+    //                         entriesSize[i][j] = [curdx, curdy];
+    //                         // console.log(i,j,entriesSize[i][j] );
+    //                     })
+    //                 }
+    //             }
+    //             let entries = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.text != null && o.belongToTable.uuid === oneTable.uuid; });
+    //             entries.forEach(element => {
 
-                    let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
-                    let c = element.colIdx;
-                    let r = element.rowIdx;
+    //                 let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
+    //                 let c = element.colIdx;
+    //                 let r = element.rowIdx;
 
-                    if (c >= 0 && r >= 0) {
-                        let newxwid = entriesSize[r][c][0];
-                        let newyhei = entriesSize[r][c][1];
-                        const ele = this.grandFlatArr[index];
-                        console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
-                        this.moveDYfromidx(r, c, newxwid, newyhei, index, entriesEle);
-                    }
-
-
-
-
-
-                });
-
-            }
-        }
+    //                 if (c >= 0 && r >= 0) {
+    //                     let newxwid = entriesSize[r][c][0];
+    //                     let newyhei = entriesSize[r][c][1];
+    //                     const ele = this.grandFlatArr[index];
+    //                     console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
+    //                     this.moveDYfromidx(r, c, newxwid, newyhei, index, entriesEle);
+    //                 }
 
 
 
 
-    }
+
+    //             });
+
+    //         }
+    //     }
+
+
+
+
+    // }
 
     moveDXfromidx(r: number, c: number, newxwid: number, newyhei: number, idx: number, entriesEle: any[]) {
         const ele = this.grandFlatArr[idx];
@@ -576,81 +580,81 @@ export class MMParser {
         //     // ele.y1 += dy;
         // }
     }
-    rearrangeXForTable() {
-        while (this.tableStacksofStackX.length > 0) {
-            let tablestack = this.tableStacksofStackX.pop();
-            console.log("new tablestack:");
-            while (tablestack.length > 0) {
-                let oneTable = tablestack.pop();
-                let entriesSize = [];
-                let entriesEle = [];
-                for (let i = 0; i < oneTable.row; i++) {
-                    entriesSize.push([]);
-                    entriesEle.push([]);
-                    for (let j = 0; j < oneTable.col; j++) {
-                        entriesSize[entriesSize.length - 1].push([-1, -1]);
-                        let entries = lodash.filter(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null && o.brakectForTab == null && o.text != " "
-                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
-                        });
-                        let parentTable = lodash.find(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null && o.type == LBlockType.mtable
-                                && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
-                        });
-                        if (parentTable != null) entries.push(parentTable);
+    // rearrangeXForTable() {
+    //     while (this.tableStacksofStackX.length > 0) {
+    //         let tablestack = this.tableStacksofStackX.pop();
+    //         console.log("new tablestack:");
+    //         while (tablestack.length > 0) {
+    //             let oneTable = tablestack.pop();
+    //             let entriesSize = [];
+    //             let entriesEle = [];
+    //             for (let i = 0; i < oneTable.row; i++) {
+    //                 entriesSize.push([]);
+    //                 entriesEle.push([]);
+    //                 for (let j = 0; j < oneTable.col; j++) {
+    //                     entriesSize[entriesSize.length - 1].push([-1, -1]);
+    //                     let entries = lodash.filter(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null && o.brakectForTab == null && o.text != " "
+    //                             && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid);
+    //                     });
+    //                     let parentTable = lodash.find(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null && o.type == LBlockType.mtable
+    //                             && o.colIdx == j && o.rowIdx == i && o.belongToTable.uuid === oneTable.uuid);
+    //                     });
+    //                     if (parentTable != null) entries.push(parentTable);
 
-                        entriesEle[entriesEle.length - 1].push(entries);
-                    }
-                }
+    //                     entriesEle[entriesEle.length - 1].push(entries);
+    //                 }
+    //             }
 
-                // get proper size for each entry (maybe useless)
-                for (let i = 0; i < oneTable.row; i++) {
-                    for (let j = 0; j < oneTable.col; j++) {
-                        let entries = lodash.filter(this.grandFlatArr, function (o) {
-                            return (o.belongToTable != null)
-                                && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid;
-                        });
+    //             // get proper size for each entry (maybe useless)
+    //             for (let i = 0; i < oneTable.row; i++) {
+    //                 for (let j = 0; j < oneTable.col; j++) {
+    //                     let entries = lodash.filter(this.grandFlatArr, function (o) {
+    //                         return (o.belongToTable != null)
+    //                             && o.colIdx == j && o.rowIdx == i && o.text != null && o.belongToTable.uuid === oneTable.uuid;
+    //                     });
 
-                        entries.forEach(element => {
-                            let dx = element.x1 - element.x0;
-                            let dy = element.y1 - element.y0;
-                            let curdx = entriesSize[i][j][0];
-                            let curdy = entriesSize[i][j][1];
-                            if (dx > curdx) curdx = dx;
-                            if (dy > curdy) curdy = dy;
-                            entriesSize[i][j] = [curdx, curdy];
-                            // console.log(i,j,entriesSize[i][j] );
-                        })
-                    }
-                }
-                let entries = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.text != null && o.belongToTable.uuid === oneTable.uuid; });
-                entries.forEach(element => {
+    //                     entries.forEach(element => {
+    //                         let dx = element.x1 - element.x0;
+    //                         let dy = element.y1 - element.y0;
+    //                         let curdx = entriesSize[i][j][0];
+    //                         let curdy = entriesSize[i][j][1];
+    //                         if (dx > curdx) curdx = dx;
+    //                         if (dy > curdy) curdy = dy;
+    //                         entriesSize[i][j] = [curdx, curdy];
+    //                         // console.log(i,j,entriesSize[i][j] );
+    //                     })
+    //                 }
+    //             }
+    //             let entries = lodash.filter(this.grandFlatArr, function (o) { return (o.belongToTable != null) && o.text != null && o.belongToTable.uuid === oneTable.uuid; });
+    //             entries.forEach(element => {
 
-                    let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
-                    let c = element.colIdx;
-                    let r = element.rowIdx;
+    //                 let index = lodash.findIndex(this.grandFlatArr, function (o) { return o.uuid == element.uuid });
+    //                 let c = element.colIdx;
+    //                 let r = element.rowIdx;
 
-                    if (c >= 0 && r >= 0) {
-                        let newxwid = entriesSize[r][c][0];
-                        let newyhei = entriesSize[r][c][1];
-                        const ele = this.grandFlatArr[index];
-                        console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
-                        this.moveDXfromidx(r, c, newxwid, newyhei, index, entriesEle);
-                    }
-
-
-
-
-
-                });
-
-            }
-        }
+    //                 if (c >= 0 && r >= 0) {
+    //                     let newxwid = entriesSize[r][c][0];
+    //                     let newyhei = entriesSize[r][c][1];
+    //                     const ele = this.grandFlatArr[index];
+    //                     console.log(element.rowIdx, element.colIdx, element.text, r, c, entriesSize[r][c], newxwid - (ele.x1 - ele.x0));
+    //                     this.moveDXfromidx(r, c, newxwid, newyhei, index, entriesEle);
+    //                 }
 
 
 
 
-    }
+
+    //             });
+
+    //         }
+    //     }
+
+
+
+
+    // }
     putBlockStartEndToGrandFlatArr(block: LBlock) {
 
         var blockInArray = this.grandFlatArr[block.idxInArray];//lodash.find(this.grandFlatArr, function (o) { return o.uuid == block.uuid; });
@@ -773,21 +777,16 @@ export class MMParser {
 
 
 
-    }
-    iterateGrandBlockTree2(initblock: LBlock) {
+    }   
+    // using grandblocktree, assemble lvlstack which contains dimension for chars
+    assembleLvlStack(initblock: LBlock) {
 
 
         let localLvlStack : LBlock[]= [];
         let stack = [initblock];
         while (stack.length > 0) {
-            let block = stack.shift();
-
-            // console.log(block.type+" "+block.lvl.toString()+" "+ block.parent.type);
-            // if(block.text!=null)
-            // console.log(block.text);
-            // block.edim=new ED.EDim(block,this.grandFlatArr);
+            let block = stack.shift();// pop the first ele from stack
             localLvlStack.push(block);
-
             if (block.children != null && block.children.length > 0) {
                 block.children.forEach((child, idx) => {
                     stack.push(child);
@@ -795,14 +794,15 @@ export class MMParser {
             }
         }
 
-        // making edim from leaves
-        lodash.reverse(localLvlStack);
+        lodash.reverse(localLvlStack);// now array goes from leaves back to head
+
+        // making edim for each block from leaves
         localLvlStack.forEach(block => {
             block.edim=new ED.EDim(block,this.grandFlatArr);
         });
         console.log("=============");
-        lodash.reverse(localLvlStack);
-
+        
+        lodash.reverse(localLvlStack);// now array goes from head to leaves again
         localLvlStack.forEach(block => {
             console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
             console.log(block.edim.dim.scale);
@@ -830,21 +830,14 @@ export class MMParser {
             const ele = this.lvlStack[i];
 
             if (ele.text != null) {
-                //console.log(ele.type.toString() + " text:" + ele.text + " scale:" + ele.scale.toFixed(3) + " x:[" + ele.x0.toFixed(3) + "," + ele.x1.toFixed(3) + "]" + " y:[" + ele.y0.toFixed(3) + "," + ele.y1 + "]");
-
-
-                let xinterval = (ele.x1 - ele.x0) / ele.text.toString().length;
+                let eledim = ele.edim.dim;
+                let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
                 for (let i = 0; i < ele.text.toString().length; i++) {
                     const char = ele.text.toString()[i];
-                    // let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: (ele.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: ele.y0, y1: ele.y1 };
-                    let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: -1, y0: ele.y0, y1: -1 };
-                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale);
+                    let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
+                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, eledim.scale);
                     mathtxts.toTransedMesh();
                 }
-
-
-
-
                 // let mathtxts = new MathText.MathString(text, scene, layerMask);
             }
 
@@ -1062,9 +1055,15 @@ export class MMParser {
 
     fillinBelongArr() {
 
-        function putinOrPullout(matchedType: LBlockType, ele: MMFlatStruct, ownedDetailsinfo: OwnedDetail[]) {
+        function putinOrPulloutFromOwnedDetailsinfo(matchedType: LBlockType, ele: MMFlatStruct, ownedDetailsinfo: OwnedDetail[]) {
             if (ele.type == matchedType && ele.closeFor == null) {
-                ownedDetailsinfo.push({ owner: ele, counter: -1 });
+                if(matchedType==LBlockType.mtable)
+                {
+                    ownedDetailsinfo.push({ owner: ele, tabDetail: { rowIdx: -1, colIdx: -1 ,tab:ele} });
+                }
+                else{
+                    ownedDetailsinfo.push({ owner: ele, counter: -1 });
+                }
             }
             else if (ele.type == matchedType && ele.closeFor != null) {
                 lodash.remove(ownedDetailsinfo, function (tmp) { return tmp.owner.uuid === ele.closeFor.uuid });
@@ -1083,22 +1082,15 @@ export class MMParser {
             if (ele.ownedDetails == undefined) {
                 ele.ownedDetails = [];
             }
-            ownedDetailsinfo = putinOrPullout(LBlockType.mfrac, ele, ownedDetailsinfo);
-            ownedDetailsinfo = putinOrPullout(LBlockType.msub, ele, ownedDetailsinfo);
-            ownedDetailsinfo = putinOrPullout(LBlockType.msup, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.mfrac, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msub, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msup, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msubsup, ele, ownedDetailsinfo);
 
-
-            if (ele.type == LBlockType.mtable && ele.closeFor == null) {
-                ownedDetailsinfo.push({ owner: ele, tabDetail: { rowIdx: -1, colIdx: -1 } });
-            }
-            else if (ele.type == LBlockType.mtable && ele.closeFor != null) {
-                lodash.remove(ownedDetailsinfo, function (tmp) { return tmp.owner.uuid === ele.closeFor.uuid });
-            }
-
+            if (ele.closeFor!=null) continue;
 
             for (let j = ownedDetailsinfo.length - 1; j >= 0; j--) {
                 let tmpDetail = ownedDetailsinfo[j];
-
                 if (ele.lvl - 1 == tmpDetail.owner.lvl) {
                     tmpDetail.counter = tmpDetail.counter + 1;
                     if (tmpDetail.owner.type == LBlockType.mfrac) {
@@ -1125,6 +1117,18 @@ export class MMParser {
                                 tmpDetail.pos = Position.Mid;
                                 break;
                             case 1:
+                                tmpDetail.pos = Position.Up;
+                        }
+                    }
+                    if (tmpDetail.owner.type == LBlockType.msubsup) {
+                        switch (tmpDetail.counter) {
+                            case 0:
+                                tmpDetail.pos = Position.Mid;
+                                break;
+                            case 1:
+                                tmpDetail.pos = Position.Down;
+                                break;
+                            case 2:
                                 tmpDetail.pos = Position.Up;
                         }
                     }
@@ -1156,10 +1160,10 @@ export class MMParser {
                 let ownedDetailinfo = ownedDetailsinfo[j];
                 if (ownedDetailinfo.owner.type == LBlockType.mtable) {
                     let tmptab = ownedDetailinfo.tabDetail;
-                    ele.ownedDetails.push({ owner: ownedDetailinfo.owner, tabDetail: { colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx } });
+                    ele.ownedDetails.push({ owner: ownedDetailinfo.owner, tabDetail: { colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx , tab:tmptab.tab} });
                 }
                 else {
-                    ele.ownedDetails.push(ownedDetailinfo);
+                    ele.ownedDetails.push({owner:ownedDetailinfo.owner,pos:ownedDetailinfo.pos,counter:ownedDetailinfo.counter});                        
                 }
             }
 
@@ -1209,120 +1213,120 @@ export class MMParser {
 
     }
 
-    markTableInfoinArr() {
-        this.tableStacksofStackX = [];
-        this.tableStacksofStackY = [];
-        let curOpenedTable = [];
+    // markTableInfoinArr() {
+    //     this.tableStacksofStackX = [];
+    //     this.tableStacksofStackY = [];
+    //     let curOpenedTable = [];
 
 
-        let tmpTableInfo = { rowIdx: 0, colIdx: 0, tab: this.grandFlatArrWithClose[0] };
-        for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
-            const ele = this.grandFlatArrWithClose[i];
-            // const eleinArray = lodash.find(this.grandFlatArr, function (o) { return o.uuid == ele.uuid; });
-
-
-
-
-            if (ele.type == LBlockType.mtable && ele.closeFor == null) {
-
-                if (curOpenedTable.length == 0) {
-                    this.tableStacksofStackX.push([ele]);
-                    this.tableStacksofStackY.push([ele]);
-                }
-                else {
-                    ele.belongToTable = tmpTableInfo.tab;// mark table in table
-                    ele.rowIdx = tmpTableInfo.rowIdx;// mark table in table
-                    ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);// mark table in table
-                    this.tableStacksofStackX[this.tableStacksofStackX.length - 1].push(ele);
-                    this.tableStacksofStackY[this.tableStacksofStackY.length - 1].push(ele);
-                }
-                tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
-                curOpenedTable.push(tmpTableInfo);
-                this.grandFlatArrWithClose[i - 2].belongToTable = ele; // marking "["
-                this.grandFlatArrWithClose[i - 2].colIdx = 0; // marking "["
-                this.grandFlatArrWithClose[i - 2].rowIdx = 0; // marking "["
-                this.grandFlatArrWithClose[i - 2].brakectForTab = true;
-                continue;
-
-            }
-            if (ele.type == LBlockType.mtable && ele.closeFor != null) {
-                // this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
-                // this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
-                // this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
-                // this.grandFlatArrWithClose[i + 1].brakectForTab=true;
-
-                curOpenedTable.pop();
-                tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
-                i = i + 1
-                continue;
-            }
-            if (curOpenedTable.length == 0 || ele.closeFor != null) continue;
-
-
-            ele.belongToTable = tmpTableInfo.tab;
-            ele.col = ele.belongToTable.col;
-            ele.row = ele.belongToTable.row;
-
-            // if(ele.type==="mtr" || ele.type==="mtd" ){
-            //     ele.belongToTable = tmpTableInfo.tab;
-            //     ele.col=ele.belongToTable.col;
-            //     ele.row=ele.belongToTable.row;
-            // }
-
-            if (ele.type == LBlockType.mtr) {
-                tmpTableInfo.rowIdx += 1;
-                ele.rowIdx = tmpTableInfo.rowIdx;
-            }
-            else if (ele.type == LBlockType.mtd) {
-                ele.rowIdx = tmpTableInfo.rowIdx;
-                tmpTableInfo.colIdx += 1;
-                ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
-            }
-            else {
-                // ele.belongToTable = tmpTableInfo.tab;
-                // ele.col=ele.belongToTable.col;
-                // ele.row=ele.belongToTable.row;
-                ele.rowIdx = tmpTableInfo.rowIdx;
-                ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
-            }
-        }
-
-
-        // put colIdx and rowIdx info into "mtd" and "mtr" in granblocktree
-        // let blockTreeStack = [this.grandLBlockTree];
-        // while (blockTreeStack.length > 0) {
-        //     let block = blockTreeStack.pop();
-        //     if (block.children != null) {
-        //         block.children.forEach((child, idx) => {
-        //             blockTreeStack.push(child);
-        //         })
-        //     }
-        //     if (block.type == LBlockType.mtd) {
-        //         let idx = block.idxInArray;
-        //         block.colidx = this.grandFlatArr[idx].colIdx;
-        //         block.rowidx = this.grandFlatArr[idx].rowIdx;
-        //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
-        //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
-        //         block.col = block.belongToTable.col;
-        //         block.row = block.belongToTable.row;
-        //     }
-        //     if (block.type == LBlockType.mtr) {
-        //         let idx = block.idxInArray;
-        //         block.rowidx = this.grandFlatArr[idx].rowIdx;
-        //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
-        //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
-        //         block.row = block.belongToTable.row;
-        //     }
-        // }
+    //     let tmpTableInfo = { rowIdx: 0, colIdx: 0, tab: this.grandFlatArrWithClose[0] };
+    //     for (let i = 0; i < this.grandFlatArrWithClose.length; i += 1) {
+    //         const ele = this.grandFlatArrWithClose[i];
+    //         // const eleinArray = lodash.find(this.grandFlatArr, function (o) { return o.uuid == ele.uuid; });
 
 
 
+
+    //         if (ele.type == LBlockType.mtable && ele.closeFor == null) {
+
+    //             if (curOpenedTable.length == 0) {
+    //                 this.tableStacksofStackX.push([ele]);
+    //                 this.tableStacksofStackY.push([ele]);
+    //             }
+    //             else {
+    //                 ele.belongToTable = tmpTableInfo.tab;// mark table in table
+    //                 ele.rowIdx = tmpTableInfo.rowIdx;// mark table in table
+    //                 ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);// mark table in table
+    //                 this.tableStacksofStackX[this.tableStacksofStackX.length - 1].push(ele);
+    //                 this.tableStacksofStackY[this.tableStacksofStackY.length - 1].push(ele);
+    //             }
+    //             tmpTableInfo = { rowIdx: -1, colIdx: -1, tab: ele };
+    //             curOpenedTable.push(tmpTableInfo);
+    //             this.grandFlatArrWithClose[i - 2].belongToTable = ele; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].colIdx = 0; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].rowIdx = 0; // marking "["
+    //             this.grandFlatArrWithClose[i - 2].brakectForTab = true;
+    //             continue;
+
+    //         }
+    //         if (ele.type == LBlockType.mtable && ele.closeFor != null) {
+    //             // this.grandFlatArrWithClose[i + 1].belongToTable = tmpTableInfo.tab; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].colIdx = tmpTableInfo.tab.col - 1; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].rowIdx = tmpTableInfo.tab.row - 1; // marking "]"
+    //             // this.grandFlatArrWithClose[i + 1].brakectForTab=true;
+
+    //             curOpenedTable.pop();
+    //             tmpTableInfo = curOpenedTable[curOpenedTable.length - 1];
+    //             i = i + 1
+    //             continue;
+    //         }
+    //         if (curOpenedTable.length == 0 || ele.closeFor != null) continue;
+
+
+    //         ele.belongToTable = tmpTableInfo.tab;
+    //         ele.col = ele.belongToTable.col;
+    //         ele.row = ele.belongToTable.row;
+
+    //         // if(ele.type==="mtr" || ele.type==="mtd" ){
+    //         //     ele.belongToTable = tmpTableInfo.tab;
+    //         //     ele.col=ele.belongToTable.col;
+    //         //     ele.row=ele.belongToTable.row;
+    //         // }
+
+    //         if (ele.type == LBlockType.mtr) {
+    //             tmpTableInfo.rowIdx += 1;
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //         }
+    //         else if (ele.type == LBlockType.mtd) {
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //             tmpTableInfo.colIdx += 1;
+    //             ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+    //         }
+    //         else {
+    //             // ele.belongToTable = tmpTableInfo.tab;
+    //             // ele.col=ele.belongToTable.col;
+    //             // ele.row=ele.belongToTable.row;
+    //             ele.rowIdx = tmpTableInfo.rowIdx;
+    //             ele.colIdx = this.getColIdx(tmpTableInfo.colIdx, tmpTableInfo.tab.col);
+    //         }
+    //     }
+
+
+    //     // put colIdx and rowIdx info into "mtd" and "mtr" in granblocktree
+    //     // let blockTreeStack = [this.grandLBlockTree];
+    //     // while (blockTreeStack.length > 0) {
+    //     //     let block = blockTreeStack.pop();
+    //     //     if (block.children != null) {
+    //     //         block.children.forEach((child, idx) => {
+    //     //             blockTreeStack.push(child);
+    //     //         })
+    //     //     }
+    //     //     if (block.type == LBlockType.mtd) {
+    //     //         let idx = block.idxInArray;
+    //     //         block.colidx = this.grandFlatArr[idx].colIdx;
+    //     //         block.rowidx = this.grandFlatArr[idx].rowIdx;
+    //     //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
+    //     //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
+    //     //         block.col = block.belongToTable.col;
+    //     //         block.row = block.belongToTable.row;
+    //     //     }
+    //     //     if (block.type == LBlockType.mtr) {
+    //     //         let idx = block.idxInArray;
+    //     //         block.rowidx = this.grandFlatArr[idx].rowIdx;
+    //     //         block.belongToTable = this.grandFlatArr[idx].belongToTable;
+    //     //         // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === block.belongToTable.uuid);
+    //     //         block.row = block.belongToTable.row;
+    //     //     }
+    //     // }
 
 
 
 
 
-    };
+
+
+
+    // };
 
     getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number,
         miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {

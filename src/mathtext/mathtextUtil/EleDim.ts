@@ -1,8 +1,9 @@
 import { difference, first } from 'lodash';
-import { MathmlParser as MP } from '../mathmlParser';
+import { MathmlParser as MP, OwnedDetail } from '../mathmlParser';
 // import { create, all,MathArray, MathType } from 'mathjs'
 
 import * as mathjs from 'mathjs';
+import * as lodash from 'lodash';
 
 // const config = {
 //    
@@ -103,61 +104,88 @@ export class EDim {
             let x0 = block.children[0].edim.dim.xs[0];
             block.children.forEach((child) => {
                 let dim = child.edim.dim;
-                // child.edim.scaleAndMove(1, x0 - dim.xs[0], 0);
                 child.edim.spatialTrans({ delx: x0 - dim.xs[0], dely: 0 }, 1, true);
-
                 if (dim.ys[0] < y0) y0 = dim.ys[0];
                 if (dim.ys[1] > y1) y1 = dim.ys[1];
-
                 x0 = child.edim.dim.xs[1];
-                if (child.edim.dim.text != null)
-                    console.log(child.edim.dim.text, " new x0:", x0);
-
             });
             return { scale: 1, xs: [block.children[0].edim.dim.xs[0], x0], ys: [y0, y1] };
 
         }
-        if (block.type == MP.LBlockType.msub || block.type==MP.LBlockType.msup) {
-            let y0 = Number.MAX_SAFE_INTEGER;
-            let y1 = Number.MIN_SAFE_INTEGER;
-            let x1 = 0;
-            let x0 = 0;
+        if (block.type == MP.LBlockType.msubsup) {
+            let baseEle_y0 = 0;
+            let baseEle_y1 = 0;
+            let baseEle_x1 = 0;
             block.children.forEach((child, idx) => {
                 let dim = child.edim.dim;
-                if (idx == 0) {
-                    x0 = dim.xs[0];
-                    x1 = dim.xs[1];
-                    y0 = dim.ys[0];
-                    y1 = dim.ys[1];
+                let eleinArray = this.grandFlatArr[child.idxInArray];
+                let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
+                console.log(ownedDetailed);
+                // if (idx == 0) {
+                if (ownedDetailed.pos == MP.Position.Mid) {
+                    baseEle_x1 = dim.xs[1];
+                    baseEle_y0 = dim.ys[0];
+                    baseEle_y1 = dim.ys[1];
                 }
-                else if (idx == 1) {
+                // else if (idx == 1) {
+                else if (ownedDetailed.pos == MP.Position.Down) {
                     let newscale = .75;
-                    let delx = x1 - dim.xs[0];
+                    let delx = baseEle_x1 - dim.xs[0];
+                    let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                }
+                // else if (idx == 2) {
+                else if (ownedDetailed.pos == MP.Position.Up) {
+                    let newscale = .75;
+                    let delx = baseEle_x1 - dim.xs[0];
+                    let dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                }
+            });
+            let xys = this.getxys();
+            return { scale: 1, xs: xys.xs, ys: xys.ys };
+        }
+        if (block.type == MP.LBlockType.msub || block.type == MP.LBlockType.msup) {
+            let baseEle_y0 = 0;
+            let baseEle_y1 = 0;
+            let baseEle_x1 = 0;
+            block.children.forEach((child, idx) => {
+                let dim = child.edim.dim;
+                let eleinArray = this.grandFlatArr[child.idxInArray];
+                let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
+                if (ownedDetailed.pos == MP.Position.Mid) {
+                    baseEle_x1 = dim.xs[1];
+                    baseEle_y0 = dim.ys[0];
+                    baseEle_y1 = dim.ys[1];
+                }
+                else {
+                    let newscale = .75;
+                    let delx = baseEle_x1 - dim.xs[0];
                     let dely = 0;
-                    if(block.type == MP.LBlockType.msub)
-                    {
+                    if (ownedDetailed.pos == MP.Position.Down) {
                         dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
-                    else if(block.type == MP.LBlockType.msup)
-                    {
-                        dely = ( y1-y0 )-0.5*(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                    else if (ownedDetailed.pos == MP.Position.Up) {
+                        dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
-                    child.edim.spatialTrans( { delx: delx, dely: dely }, newscale, true);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
                 }
             });
             let xys = this.getxys();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
 
-        if(block.type == MP.LBlockType.mtd){
+        if (block.type == MP.LBlockType.mtd) {
             let mms = this.grandFlatArr[block.idxInArray];
             for (let i = mms.ownedDetails.length - 1; i >= 0; i--) {
-                const ownedDetail = mms.ownedDetails[i];
-                if(ownedDetail.tabDetail!=null)
-                {
-                    console.log("tabde:",ownedDetail.tabDetail.rowIdx, " ", ownedDetail.tabDetail.colIdx);
+                const ownedDetail: OwnedDetail = mms.ownedDetails[i];
+                if (ownedDetail.tabDetail != null) {
+                    let row = ownedDetail.tabDetail.tab.row;
+                    let col = ownedDetail.tabDetail.tab.col;
+                    let rowIdx = ownedDetail.tabDetail.rowIdx;
+                    let colIdx = ownedDetail.tabDetail.colIdx;
                 }
-                
+
             }
         }
 
@@ -179,11 +207,11 @@ export class EDim {
         // });
 
         // using mathjs
-        this.dim.scale*=newscale;
+        this.dim.scale *= newscale;
         let transMat = mathjs.multiply(mathjs.identity(3), newscale) as mathjs.Matrix;
         transMat.subset(mathjs.index([0, 1, 2], [2]), [[trans.delx], [trans.dely], [1]]);
         this.getbounds().forEach((b, idx) => {
-            let tmpmat = mathjs.multiply( transMat , mathjs.matrix( [[b[0]], [b[1]], [1]] ) ) as mathjs.Matrix;
+            let tmpmat = mathjs.multiply(transMat, mathjs.matrix([[b[0]], [b[1]], [1]])) as mathjs.Matrix;
             this.dim.xs[idx] = tmpmat.get([0, 0]) as number;
             this.dim.ys[idx] = tmpmat.get([1, 0]) as number;
         });
