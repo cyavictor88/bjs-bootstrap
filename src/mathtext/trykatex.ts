@@ -48,8 +48,7 @@ export function trykatex(input):[any,MathmlParser.MMParser] {
     };
     const parser = new XMLParser(options);
     let jObj = parser.parse(html);
-    var mml = jObj[0].span[0].math[0].semantics;
-    console.log(mml);
+    var mml:[] = jObj[0].span[0].math[0].semantics;
     // recuIterfp("semantics",mml,0,0);
 
     let mmp: MathmlParser.MMParser = new MathmlParser.MMParser(mml);

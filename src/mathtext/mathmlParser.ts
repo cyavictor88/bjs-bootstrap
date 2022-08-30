@@ -105,8 +105,8 @@ export interface MMFlatStruct {
     attriArr?: MAttriDet[],
     uuid?: string,
     closeFor?: MMFlatStruct,
-    col?: number,
-    row?: number,
+    cols?: number,
+    rows?: number,
 
 
     belongToTable?: MMFlatStruct,
@@ -175,8 +175,7 @@ export interface LBlock {
     colidx?: number,
     rowidx?: number,
     belongToTable?: MMFlatStruct,
-    col?: number,
-    row?: number,
+
     // start?: number,
     // end?: number,
 
@@ -222,10 +221,10 @@ export class MMParser {
         this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
 
         this.assembleGrandMTagNode();
-        // console.log(this.grandMTagNode);
-
+        console.log('******staaaaaart asemGrandFlatArr****');
         this.assembleGrandFlatArr(this.grandMTagNode);
-        // console.log(this.grandFlatArr);
+        console.log('******enddddd asemGrandFlatArr*******');
+
 
         this.assembleGrandFlatWithCloseArr();
 
@@ -285,7 +284,7 @@ export class MMParser {
 
 
     addBlockStartEndToArr() {
-        let curTable: MMFlatStruct = { type: LBlockType.mdummy, lvl: -1, col: 1, row: 1 };
+        let curTable: MMFlatStruct = { type: LBlockType.mdummy, lvl: -1, cols: 1, rows: 1 };
         let tableStack = [];
 
         let bxy: BlockXY = { x0: 0, y0: 0 };
@@ -380,7 +379,7 @@ export class MMParser {
             let miny0 = Number.MAX_SAFE_INTEGER;
 
             let minx0 = Number.MAX_SAFE_INTEGER;
-            for (let j = 0; j <= ele.col; j++) {
+            for (let j = 0; j <= ele.cols; j++) {
 
                 let aboveEntry: [] = entriesEle[r - 1][j];
                 if (aboveEntry == null) continue;
@@ -731,53 +730,7 @@ export class MMParser {
     }
 
 
-    putinScene(block: LBlock, scene: Scene, layerMask: number,) {
-        return
-        let xoffset = -30;
-        let xscale = 0.6;
-
-
-        if (block.type == LBlockType.mtd) {
-            console.log("table:" + block.belongToTable.uuid.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx + " colidx:" + block.colidx);
-        }
-        if (block.type == LBlockType.mtr) {
-            console.log("table:" + block.belongToTable.uuid.substring(0, 4) + " row " + block.row + " col " + block.col + " rowidx:" + block.rowidx);
-
-
-
-        }
-        if (block.children != null && block.children.length > 0) {
-
-            block.children.forEach((child, idx) => {
-                this.putinScene(child, scene, layerMask);
-            });
-        }
-        else if (block.text != null) {
-            // console.log(block.text.toString());
-            // console.log(block.text.toString().length );
-            console.log(block.type.toString() + " text:" + block.text + " scale:" + block.scale.toFixed(3) + " x:[" + block.x0.toFixed(3) + "," + block.x1.toFixed(3) + "]" + " y:[" + block.y0.toFixed(3) + "," + block.y1 + "]");
-
-
-            let xinterval = (block.x1 - block.x0) / block.text.toString().length;
-            for (let i = 0; i < block.text.toString().length; i++) {
-                const char = block.text.toString()[i];
-                let box = { x0: (block.x0 + xoffset + i * xinterval) * xscale, x1: (block.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: block.y0, y1: block.y1 };
-                let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, block.scale);
-                mathtxts.toTransedMesh();
-            }
-
-
-
-
-            // let mathtxts = new MathText.MathString(text, scene, layerMask);
-        }
-        else {
-            throw ('som ting wong');
-        }
-
-
-
-    }   
+ 
     // using grandblocktree, assemble lvlstack which contains dimension for chars
     assembleLvlStack(initblock: LBlock) {
         console.log("start asembleLvlStack:")
@@ -1087,6 +1040,7 @@ export class MMParser {
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msub, ele, ownedDetailsinfo);
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msup, ele, ownedDetailsinfo);
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msubsup, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.mtable, ele, ownedDetailsinfo);
 
             if (ele.closeFor!=null) continue;
 
@@ -1153,7 +1107,7 @@ export class MMParser {
                         mostRecentTabInfo.colIdx += 1;
                     }
                     if (ele.closeFor != null) continue;
-                    mostRecentTabInfo.colIdx = this.getColIdx(mostRecentTabInfo.colIdx, ownedDetailinfo.owner.col);
+                    mostRecentTabInfo.colIdx = this.getColIdx(mostRecentTabInfo.colIdx, ownedDetailinfo.owner.cols);
                     break;
                 }
             }
@@ -1175,11 +1129,12 @@ export class MMParser {
 
 
 
-            // if (ele.text != null) {
-            //     console.log(ele.text)
-            //     for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
-            //         console.log(ele.ownedDetails[j].pos)
-            //     }
+            // if (ele.text!=null) {
+                // console.log(ele.text)
+                // console.log(ele.ownedDetails)
+                // for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
+                //     console.log(ele.ownedDetails[j].pos)
+                // }
             // }
         }
 
@@ -1505,8 +1460,8 @@ export class MMParser {
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mtable:
-                        newLBlock["col"] = ele.col;
-                        newLBlock["row"] = ele.row;
+                        newLBlock["col"] = ele.cols;
+                        newLBlock["row"] = ele.rows;
                     default:
                         newLBlock["children"] = [];
                         if (ele.lvl == parentOfnewLBlockArr.length) parentOfnewLBlockArr.push(newLBlock);
@@ -1520,7 +1475,7 @@ export class MMParser {
 
 
     addRowColAttriForTablesInFlatArrs() {
-        let curTable: MMFlatStruct = { type: LBlockType.mdummy, lvl: -1, col: 1, row: 1 };
+        let curTable: MMFlatStruct = { type: LBlockType.mdummy, lvl: -1, cols: 1, rows: 1 };
 
         let tableStack = [];
 
@@ -1530,11 +1485,11 @@ export class MMParser {
             if (ele.type == LBlockType.mtable && ele.closeFor == null) {
                 tableStack.push(ele);
                 curTable = ele;
-                curTable.col = 0;
-                curTable.row = 0;
+                curTable.cols = 0;
+                curTable.rows = 0;
             }
             if (ele.type == LBlockType.mtd && ele.closeFor == null) {
-                curTable.col += 1;
+                curTable.cols += 1;
                 // const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === ele.uuid);
                 // let spaceBetweenCol: MMFlatStruct = { type: LBlockType.mi, lvl: ele.lvl + 1, text: " ", uuid: uuidv4().toString() };
                 // this.grandFlatArr.splice(index + 1, 0, spaceBetweenCol);
@@ -1547,15 +1502,15 @@ export class MMParser {
 
             }
             if (ele.type == LBlockType.mtr && ele.closeFor == null) {
-                curTable.row += 1;
+                curTable.rows += 1;
             }
             if (ele.type == LBlockType.mtable && ele.closeFor != null) {
-                curTable.col = (curTable.col / curTable.row | 0);
-                console.log("col:" + curTable.col + " row:" + curTable.row);
+                curTable.cols = (curTable.cols / curTable.rows | 0);
+                console.log("col:" + curTable.cols + " row:" + curTable.rows);
 
                 const index = lodash.findIndex(this.grandFlatArr, (sub_ele) => sub_ele.uuid === ele.closeFor.uuid);
-                this.grandFlatArr[index].col = curTable.col;
-                this.grandFlatArr[index].row = curTable.row;
+                this.grandFlatArr[index].cols = curTable.cols;
+                this.grandFlatArr[index].rows= curTable.rows;
 
 
                 tableStack.pop();

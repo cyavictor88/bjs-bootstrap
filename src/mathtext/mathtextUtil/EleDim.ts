@@ -92,7 +92,7 @@ export class EDim {
     initDim(): Dim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
-        console.log(block.lvl," ",block.type)
+        // console.log(block.lvl," ",block.type)
         if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn) {
             return { scale: 1, xs: [0, block.text.length], ys: [0, 1], text: block.text };
         }
@@ -148,6 +148,7 @@ export class EDim {
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
         if (block.type == MP.LBlockType.msub || block.type == MP.LBlockType.msup) {
+
             let baseEle_y0 = 0;
             let baseEle_y1 = 0;
             let baseEle_x1 = 0;
@@ -178,19 +179,15 @@ export class EDim {
         }
 
         if (block.type == MP.LBlockType.mtd) {
-            let mms = this.grandFlatArr[block.idxInArray];
-            console.log(mms.ownedDetails);
-            for (let i = mms.ownedDetails.length - 1; i >= 0; i--) {
-                const ownedDetail: OwnedDetail = mms.ownedDetails[i];
-                if (ownedDetail.tabDetail != null) {
-                    let row = ownedDetail.tabDetail.tab.row;
-                    let col = ownedDetail.tabDetail.tab.col;
-                    let rowIdx = ownedDetail.tabDetail.rowIdx;
-                    let colIdx = ownedDetail.tabDetail.colIdx;
-                    console.log(row,col,rowIdx,colIdx)
-                }
+            let ownedDetail = lodash.findLast(this.grandFlatArr[block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
+            let rows = ownedDetail.tabDetail.tab.rows;
+            let cols = ownedDetail.tabDetail.tab.cols;
+            let rowIdx = ownedDetail.tabDetail.rowIdx;
+            let colIdx = ownedDetail.tabDetail.colIdx;
 
-            }
+            
+
+
         }
 
 
