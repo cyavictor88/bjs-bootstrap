@@ -265,12 +265,12 @@ export class MMParser {
 
 
 
-        this.grandFlatArr.forEach(element => {
-            if (element.text != null) {
-                console.log(element.text)
-                console.log(element.ownedDetails)
-            }
-        });
+        // this.grandFlatArr.forEach(element => {
+        //     if (element.text != null) {
+        //         console.log(element.text)
+        //         console.log(element.ownedDetails)
+        //     }
+        // });
 
         //main
         // console.log(mathmlXml);
@@ -780,7 +780,7 @@ export class MMParser {
     }   
     // using grandblocktree, assemble lvlstack which contains dimension for chars
     assembleLvlStack(initblock: LBlock) {
-
+        console.log("start asembleLvlStack:")
 
         let localLvlStack : LBlock[]= [];
         let stack = [initblock];
@@ -817,6 +817,7 @@ export class MMParser {
 
         this.lvlStack=localLvlStack;
 
+        console.log("end asembleLvlStack:")
 
     }
 
@@ -1173,37 +1174,13 @@ export class MMParser {
 
 
 
-            // let lastTableDetailIndex = lodash.findLastIndex(ownedDetailsinfo, function (tmp) { return tmp.owner.type == LBlockType.mtable });
-            // if (lastTableDetailIndex > -1) {
-            //     let mostRecentTabInfo = ownedDetailsinfo[lastTableDetailIndex].tabDetail;
-            //     if (ele.type == LBlockType.mtr && ele.closeFor == null) {
-            //         mostRecentTabInfo.rowIdx += 1;
-            //     }
-            //     if (ele.type == LBlockType.mtd && ele.closeFor == null) {
-            //         mostRecentTabInfo.colIdx += 1;
-            //     }
-            //     if (ele.closeFor != null) continue;
-            //     mostRecentTabInfo.colIdx = this.getColIdx(mostRecentTabInfo.colIdx, ownedDetailsinfo[lastTableDetailIndex].owner.col);
 
-
-            //     ownedDetailsinfo.forEach(tmpDetail => {
-            //         if (tmpDetail.owner.type == LBlockType.mtable) {
-            //             let tmptab = tmpDetail.tabDetail;
-            //             ele.ownedDetails.push({ owner: tmpDetail.owner, tabDetail: { colIdx: tmptab.colIdx, rowIdx: tmptab.rowIdx } });
-            //         }
-            //         else {
-            //             ele.ownedDetails.push(tmpDetail);
-            //         }
-            //     });
+            // if (ele.text != null) {
+            //     console.log(ele.text)
+            //     for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
+            //         console.log(ele.ownedDetails[j].pos)
+            //     }
             // }
-
-
-            if (ele.text != null) {
-                console.log(ele.text)
-                for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
-                    console.log(ele.ownedDetails[j].pos)
-                }
-            }
         }
 
 
@@ -1647,6 +1624,7 @@ export class MMParser {
         curNode.children.forEach(element => {
             this.assembleGrandFlatArr(element);
         });
+
     }
 
 
