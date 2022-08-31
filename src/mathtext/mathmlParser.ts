@@ -64,11 +64,17 @@ export interface OwnedDetail {
 
 }
 
+export interface TabCoords{
+    xs:any[],  //  [ [  [x0,x1]  ]  ]
+    ys:any[],  //  [ [  [y0,y1]  ]  ]
+}
+
 export interface TabInfo {
     colIdx: number,
     rowIdx: number,
 
-    tab: MMFlatStruct
+    tab: MMFlatStruct,
+
 }
 
 export interface MTag {
@@ -136,6 +142,8 @@ export interface MMFlatStruct {
 
 
     dim?: ED.Dim,
+
+    tabcoords?:TabCoords
 
 
 
@@ -1013,7 +1021,19 @@ export class MMParser {
             if (ele.type == matchedType && ele.closeFor == null) {
                 if(matchedType==LBlockType.mtable)
                 {
-                    ownedDetailsinfo.push({ owner: ele, tabDetail: { rowIdx: -1, colIdx: -1 ,tab:ele} });
+                    let coordxs=[];
+                    let coordys=[];
+                    for (let r = 0; r < ele.rows; r++) {
+                        coordxs.push([]);
+                        coordys.push([]);
+                        for(let c=0;c<ele.cols;c++)
+                        {
+                            coordxs[coordxs.length-1].push([-1,-1]);
+                            coordys[coordys.length-1].push([-1,-1]);
+                        }
+                    }
+                    ele.tabcoords={xs:coordxs,ys:coordys};
+                    ownedDetailsinfo.push({ owner: ele, tabDetail: { rowIdx: -1, colIdx: -1 ,tab:ele } });
                 }
                 else{
                     ownedDetailsinfo.push({ owner: ele, counter: -1 });

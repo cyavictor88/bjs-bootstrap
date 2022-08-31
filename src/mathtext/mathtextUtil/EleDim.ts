@@ -1,5 +1,5 @@
 import { difference, first } from 'lodash';
-import { MathmlParser as MP, OwnedDetail } from '../mathmlParser';
+import { MathmlParser as MP, MMFlatStruct, OwnedDetail, TabInfo } from '../mathmlParser';
 // import { create, all,MathArray, MathType } from 'mathjs'
 
 import * as mathjs from 'mathjs';
@@ -27,7 +27,7 @@ export class EDim {
     constructor(block: MP.LBlock, grandFlatArr: MP.MMFlatStruct[]) {
         this.grandFlatArr = grandFlatArr;
         this.block = block;
-        this.dim = this.initDim();
+        this.dim = this.setDim();
         block.edim = this;
     }
 
@@ -72,7 +72,7 @@ export class EDim {
 
     }
 
-    getxys(): { xs: [number, number], ys: [number, number] } {
+    get_xyBounds_from_children(): { xs: [number, number], ys: [number, number] } {
         let y0 = Number.MAX_SAFE_INTEGER;
         let y1 = Number.MIN_SAFE_INTEGER;
         let x0 = Number.MAX_SAFE_INTEGER;
@@ -89,15 +89,15 @@ export class EDim {
 
     }
 
-    initDim(): Dim {
+    setDim(): Dim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
-        // console.log(block.lvl," ",block.type)
+        console.log(block.lvl,block.type);
         if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn) {
             return { scale: 1, xs: [0, block.text.length], ys: [0, 1], text: block.text };
         }
         if (block.type == MP.LBlockType.mstyle) {
-            let xys = this.getxys();
+            let xys = this.get_xyBounds_from_children();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
         if (block.type == MP.LBlockType.mrow) {
@@ -144,7 +144,7 @@ export class EDim {
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
                 }
             });
-            let xys = this.getxys();
+            let xys = this.get_xyBounds_from_children();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
         if (block.type == MP.LBlockType.msub || block.type == MP.LBlockType.msup) {
@@ -174,7 +174,7 @@ export class EDim {
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
                 }
             });
-            let xys = this.getxys();
+            let xys = this.get_xyBounds_from_children();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
 
@@ -184,6 +184,29 @@ export class EDim {
             let cols = ownedDetail.tabDetail.tab.cols;
             let rowIdx = ownedDetail.tabDetail.rowIdx;
             let colIdx = ownedDetail.tabDetail.colIdx;
+            let tab = ownedDetail.tabDetail.tab;
+            let tabcoords = tab.tabcoords;
+
+            if(rows==rowIdx+1 && cols==colIdx+1 )
+            {
+                let xys = this.get_xyBounds_from_children();
+                tabcoords.xs[rowIdx][colIdx]=xys.xs;
+                tabcoords.ys[rowIdx][colIdx]=xys.ys;
+                return { scale: 1, xs: xys.xs, ys: xys.ys };
+            }
+            else
+            {
+                let refrowidx = rowIdx;
+                let refcolidx = colIdx-1;
+                if(cols==colIdx)
+                {
+                    refcolidx=colIdx;
+                }
+                else if(rowIdx==1)
+                {
+                    refcolidx=1;
+                }
+            }
 
             
 
@@ -192,6 +215,21 @@ export class EDim {
 
 
     }
+    getTabInfoUsingRowIdxColIdx(tab:MMFlatStruct,rowIdx:number,colIdx:number):TabInfo{
+        this.grandFlatArr.forEach(ele => {
+            if (ele.ownedDetails!=null && ele.ownedDetails.length>0) {
+                let owndet = lodash.findLast(ele.ownedDetails, function (p) { 
+                    return p.tabDetail != null && p.tabDetail.tab.uuid==tab.uuid &&
+                p.tabDetail.rowIdx==rowIdx && p.tabDetail.colIdx==colIdx})
+                if (owndet!=undefined) {
+                    return owndet.tabDetail;
+                }
+            }
+        });
+        return {tab:this.grandFlatArr[0],rowIdx:0,colIdx:0};
+
+    }
+
     spatialTrans(trans: { delx: number, dely: number }, newscale: number, firstime: boolean) {
         // let mat = Matrix.Identity();
         // mat.setRowFromFloats(0, newscale, 0, 0, trans.delx);
