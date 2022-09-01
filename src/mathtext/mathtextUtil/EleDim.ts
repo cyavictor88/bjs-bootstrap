@@ -182,10 +182,26 @@ export class EDim {
             let ownedDetail = lodash.findLast(this.grandFlatArr[block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
             let rows = ownedDetail.tabDetail.tab.rows;
             let cols = ownedDetail.tabDetail.tab.cols;
-            let rowIdx = ownedDetail.tabDetail.rowIdx;
-            let colIdx = ownedDetail.tabDetail.colIdx;
+            let rowidx = ownedDetail.tabDetail.rowIdx;
+            let colidx = ownedDetail.tabDetail.colIdx;
             let tab = ownedDetail.tabDetail.tab;
             let tabcoords = tab.tabcoords;
+            let xys = this.get_xyBounds_from_children();
+
+            let xbuff = 0.5;
+            let x1p:number;
+            if(colidx==cols-1)
+            {
+                x1p=xys.xs[1];
+            }
+            else
+            {
+                for (let i = rowidx; i < rows; i++) {
+                    
+                    
+                }
+            }
+
 
             if(rows==rowIdx+1 && cols==colIdx+1 )
             {
