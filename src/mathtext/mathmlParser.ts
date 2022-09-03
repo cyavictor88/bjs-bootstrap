@@ -64,10 +64,6 @@ export interface OwnedDetail {
 
 }
 
-export interface TabCoords{
-    xs:any[],  //  [ [  [x0,x1]  ]  ]
-    ys:any[],  //  [ [  [y0,y1]  ]  ]
-}
 
 export interface TabInfo {
     colIdx: number,
@@ -143,7 +139,7 @@ export interface MMFlatStruct {
 
     dim?: ED.Dim,
 
-    tabcoords?:TabCoords
+    tabEdimCoords?:any[]
 
 
 
@@ -759,7 +755,7 @@ export class MMParser {
 
         // making edim for each block from leaves
         localLvlStack.forEach(block => {
-            block.edim=new ED.EDim(block,this.grandFlatArr);
+            block.edim=new ED.EDim(this.grandFlatArr,block);
         });
         console.log("=============");
         
@@ -1021,18 +1017,15 @@ export class MMParser {
             if (ele.type == matchedType && ele.closeFor == null) {
                 if(matchedType==LBlockType.mtable)
                 {
-                    let coordxs=[];
-                    let coordys=[];
+                    let edimcoords=[]
                     for (let r = 0; r < ele.rows; r++) {
-                        coordxs.push([]);
-                        coordys.push([]);
+                        edimcoords.push([]);
                         for(let c=0;c<ele.cols;c++)
                         {
-                            coordxs[coordxs.length-1].push([-1,-1]);
-                            coordys[coordys.length-1].push([-1,-1]);
+                            edimcoords[edimcoords.length-1].push( new ED.EDim());
                         }
                     }
-                    ele.tabcoords={xs:coordxs,ys:coordys};
+                    ele.tabEdimCoords=edimcoords;
                     ownedDetailsinfo.push({ owner: ele, tabDetail: { rowIdx: -1, colIdx: -1 ,tab:ele } });
                 }
                 else{

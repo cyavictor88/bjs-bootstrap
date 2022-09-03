@@ -1,5 +1,5 @@
 import { difference, first } from 'lodash';
-import { MathmlParser as MP, MMFlatStruct, OwnedDetail, TabInfo } from '../mathmlParser';
+import { LBlock, LBlockType, MathmlParser as MP, MMFlatStruct, MMParser, OwnedDetail, TabInfo } from '../mathmlParser';
 // import { create, all,MathArray, MathType } from 'mathjs'
 
 import * as mathjs from 'mathjs';
@@ -24,11 +24,54 @@ export class EDim {
     public dim: Dim;
     public grandFlatArr: MP.MMFlatStruct[];
     public block: MP.LBlock;
-    constructor(block: MP.LBlock, grandFlatArr: MP.MMFlatStruct[]) {
-        this.grandFlatArr = grandFlatArr;
-        this.block = block;
-        this.dim = this.setDim();
-        block.edim = this;
+    constructor();
+    constructor(grandFlatArr: MP.MMFlatStruct[], block: MP.LBlock);
+    constructor(grandFlatArr?: MP.MMFlatStruct[], block?: MP.LBlock) {
+        if (grandFlatArr) {
+            this.grandFlatArr = grandFlatArr;
+        }
+        if (block) {
+            this.block = block;
+            this.dim = this.setDim();
+            block.edim = this;
+
+            if(block.type==LBlockType.mtd)
+            {
+                this.adjustTable();
+            }
+        }
+
+    }
+    adjustTable(){
+            let ownedDetail = lodash.findLast(this.grandFlatArr[this.block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
+            let rows = ownedDetail.tabDetail.tab.rows;
+            let cols = ownedDetail.tabDetail.tab.cols;
+            let rowidx = ownedDetail.tabDetail.rowIdx;
+            let colidx = ownedDetail.tabDetail.colIdx;
+            let tab = ownedDetail.tabDetail.tab;
+            let tabEdims = tab.tabEdimCoords;
+            let xys = this.get_xyBounds_from_children();
+
+             let maxx = xys.xs[1]-xys.xs[0];
+                let maxx1 = xys.xs[1];
+                let maxx0 = xys.xs[0];
+                for (let i = rowidx; i < rows ; i++) {
+                    if (tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0] > maxx) {
+                        maxx = tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0];
+                        maxx1 = tabEdims[i][colidx].dim.xs[1];
+                        maxx0 =  tabEdims[i][colidx].dim.xs[0];
+                    }
+                }
+                for (let i = rowidx+1; i <= rows - 1; i++) {
+                            let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabEdims[i][colidx].dim.xs[0], tabEdims[i][colidx].dim.xs[1], maxx0, maxx1)
+                            // todo
+        
+                            //    this.spatialTrans(delx1)
+                            for (let j = 0; j < colidx; j++) {
+                                // tabcoords.
+                                // this.spatialTrans(delx1)
+                            }
+                        }
     }
 
     getbounds() {
@@ -106,7 +149,7 @@ export class EDim {
             let x0 = block.children[0].edim.dim.xs[0];
             block.children.forEach((child) => {
                 let dim = child.edim.dim;
-                child.edim.spatialTrans({ delx: x0 - dim.xs[0], dely: 0 }, 1, true);
+                child.edim.spatialTrans({ delx: x0 - dim.xs[0], dely: 0 }, 1);
                 if (dim.ys[0] < y0) y0 = dim.ys[0];
                 if (dim.ys[1] > y1) y1 = dim.ys[1];
                 x0 = child.edim.dim.xs[1];
@@ -134,14 +177,14 @@ export class EDim {
                     let newscale = .75;
                     let delx = baseEle_x1 - dim.xs[0];
                     let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
-                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
                 // else if (idx == 2) {
                 else if (ownedDetailed.pos == MP.Position.Up) {
                     let newscale = .75;
                     let delx = baseEle_x1 - dim.xs[0];
                     let dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
-                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
             });
             let xys = this.get_xyBounds_from_children();
@@ -171,7 +214,7 @@ export class EDim {
                     else if (ownedDetailed.pos == MP.Position.Up) {
                         dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     }
-                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale, true);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
             });
             let xys = this.get_xyBounds_from_children();
@@ -179,63 +222,152 @@ export class EDim {
         }
 
         if (block.type == MP.LBlockType.mtd) {
+
             let ownedDetail = lodash.findLast(this.grandFlatArr[block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
             let rows = ownedDetail.tabDetail.tab.rows;
             let cols = ownedDetail.tabDetail.tab.cols;
             let rowidx = ownedDetail.tabDetail.rowIdx;
             let colidx = ownedDetail.tabDetail.colIdx;
             let tab = ownedDetail.tabDetail.tab;
-            let tabcoords = tab.tabcoords;
+            let tabEdims = tab.tabEdimCoords;
             let xys = this.get_xyBounds_from_children();
-
-            let xbuff = 0.5;
-            let x1p: number;
-            if (colidx == cols - 1) {
-                x1p = xys.xs[1];
+            tabEdims[rowidx][colidx] = this;
+            if (rowidx == rows - 1 && colidx == cols - 1) {
+                return { scale: 1, xs: xys.xs, ys: xys.ys };
             }
-            else {
-                let precolmaxx0 = Number.MIN_SAFE_INTEGER;
-                for (let i = rowidx; i < rows - 1; i++) {
-                    if (tabcoords.xs[i][colidx + 1][0] > precolmaxx0)
-                        precolmaxx0 = tabcoords.xs[i][colidx + 1][0];
-                }
-                x1p = xbuff + precolmaxx0;
-            }
-            let delx = x1p - xys.xs[1];
+            // else
+            // {
+            //     console.log("mts 2222");
+            //     let x1p = tabEdims[rows - 1][cols - 1].dim.xs[0]; 
+            //     console.log(x1p,"x1p");
 
+            //     let delx = x1p - xys.xs[1];
+            //     block.children[0].edim.spatialTrans({ delx: delx, dely: 0 }, 1);
+            //     xys = this.get_xyBounds_from_children();
+            //     console.log(xys.xs);
+            //     return { scale: 1, xs: xys.xs, ys: xys.ys };
+
+
+
+            // }
+
+            if (rowidx == rows - 1) {
+                let xbuff = 0.5;
+                let realx1Pos = tabEdims[rowidx][colidx + 1].dim.xs[0] - xbuff;
+                let delx = realx1Pos - xys.xs[1];
+                block.children[0].edim.spatialTrans({ delx: delx, dely: 0 }, 1);
+                xys = this.get_xyBounds_from_children();
+                return { scale: 1, xs: xys.xs, ys: xys.ys };
+            }
 
             let ybuff = 0.2;
-            let y0p: number;
-            if (rowidx == rows - 1) {
-                y0p = xys.ys[0];
+            let lowerRowy1Max = Number.MIN_SAFE_INTEGER;
+            let realy0Pos: number;
+            for (let j = 0; j < cols - 1; j++) {
+                if (tabEdims[rowidx + 1][j].dim.ys[1] > lowerRowy1Max)
+                    lowerRowy1Max = tabEdims[rowidx + 1][j].dim.ys[1];
             }
-            else {
-                let precolmaxy1 = Number.MIN_SAFE_INTEGER;
-                for (let j = 0; j < cols - 1; j++) {
-                    if (tabcoords.ys[rowidx + 1][j][1] > precolmaxy1)
-                        precolmaxy1 = tabcoords.ys[rowidx + 1][j][1];
-                }
-                y0p = ybuff + precolmaxy1;
+            realy0Pos = ybuff + lowerRowy1Max;
+            let dely = realy0Pos - xys.ys[0];
+            block.children[0].edim.spatialTrans({ delx: 0, dely: dely }, 1);
+
+
+            let sameColmaxx1 = Number.MIN_SAFE_INTEGER;
+            let realx1Pos: number;
+            for (let i = rowidx + 1; i < rows; i++) {
+                if (tabEdims[i][colidx].dim.xs[1] > sameColmaxx1)
+                    sameColmaxx1 = tabEdims[i][colidx].dim.xs[1];
             }
-            let dely = y0p - xys.ys[0];
-            let maxx = Number.MIN_SAFE_INTEGER;
-            let maxx1 = Number.MIN_SAFE_INTEGER;
-            let maxx0 = Number.MIN_SAFE_INTEGER;
-            for (let i = rowidx; i < rows - 1; i++) {
-                if (tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0] > maxx) {
-                    maxx = tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0];
-                    maxx1 = tabcoords.xs[i][colidx][1];
-                    maxx0 = tabcoords.xs[i][colidx][0];
-                }
-            }
-            for (let i = rowidx; i <= rows - 1; i++) {
-                let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
-                //    this.spatialTrans(delx1)
-                for (let j = 0; j < colidx; j++) {
-                    // tabcoords.
-                    // this.spatialTrans(delx1)
-                }
-            }
+            realx1Pos = sameColmaxx1;
+            let delx = realx1Pos - xys.xs[1];
+            block.children[0].edim.spatialTrans({ delx: delx, dely: 0 }, 1);
+            xys = this.get_xyBounds_from_children();
+            return { scale: 1, xs: xys.xs, ys: xys.ys };
+
+
+                // let maxx = xys.xs[1]-xys.xs[0];
+                // let maxx1 = xys.xs[1];
+                // let maxx0 = xys.xs[0];
+                // for (let i = rowidx+1; i < rows ; i++) {
+                //     if (tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0] > maxx) {
+                //         maxx = tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0];
+                //         maxx1 = tabEdims[i][colidx].dim.xs[1];
+                //         maxx0 =  tabEdims[i][colidx].dim.xs[0];
+                //     }
+                // }
+                // for (let i = rowidx+1; i <= rows - 1; i++) {
+                //             let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
+        
+                //             //    this.spatialTrans(delx1)
+                //             for (let j = 0; j < colidx; j++) {
+                //                 // tabcoords.
+                //                 // this.spatialTrans(delx1)
+                //             }
+                //         }
+
+
+            // let xbuff = 0.5;
+            // let x1p: number;
+            // if (colidx == cols - 1) {
+            //     let colmaxx1 = Number.MIN_SAFE_INTEGER;
+
+            //     for (let i = rowidx; i < rows - 1; i++) {
+            //         if (tabEdims[i][colidx].dim.xs[1] > colmaxx1)
+            //             colmaxx1 = tabEdims[i][colidx + 1].dim.xs[0];
+            //     }
+            //     x1p = colmaxx1;
+            // }
+            // else {
+            //     let previousColmaxx0 = Number.MIN_SAFE_INTEGER;
+            //     for (let i = rowidx; i < rows - 1; i++) {
+            //         if (tabEdims[i][colidx + 1].dim.xs[0] > previousColmaxx0)
+            //             previousColmaxx0 = tabEdims[i][colidx + 1].dim.xs[0];
+            //     }
+            //     x1p = xbuff + previousColmaxx0;
+            // }
+            // let delx = x1p - xys.xs[1];
+
+
+            //     let ybuff = 0.2;
+            //     let y0p: number;
+            //     if (rowidx == rows - 1) {
+            //         y0p = xys.ys[0];
+            //     }
+            //     else {
+            //         let precolmaxy1 = Number.MIN_SAFE_INTEGER;
+            //         for (let j = 0; j < cols - 1; j++) {
+            //             if (tabcoords.ys[rowidx + 1][j][1] > precolmaxy1)
+            //                 precolmaxy1 = tabcoords.ys[rowidx + 1][j][1];
+            //         }
+            //         y0p = ybuff + precolmaxy1;
+            //     }
+            //     let dely = y0p - xys.ys[0];
+            //     this.spatialTrans({delx:delx,dely:dely},1);
+            //     tabcoords.xs[rowidx][colidx] = this.dim.xs
+            //     tabcoords.ys[rowidx][colidx] = this.dim.ys
+
+
+
+
+            //     let maxx = Number.MIN_SAFE_INTEGER;
+            //     let maxx1 = Number.MIN_SAFE_INTEGER;
+            //     let maxx0 = Number.MIN_SAFE_INTEGER;
+            //     for (let i = rowidx; i < rows - 1; i++) {
+            //         if (tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0] > maxx) {
+            //             maxx = tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0];
+            //             maxx1 = tabcoords.xs[i][colidx][1];
+            //             maxx0 = tabcoords.xs[i][colidx][0];
+            //         }
+            //     }
+            //     for (let i = rowidx; i <= rows - 1; i++) {
+            //         let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
+
+            //         //    this.spatialTrans(delx1)
+            //         for (let j = 0; j < colidx; j++) {
+            //             // tabcoords.
+            //             // this.spatialTrans(delx1)
+            //         }
+            //     }
 
 
 
@@ -266,7 +398,7 @@ export class EDim {
 
     }
 
-    spatialTrans(trans: { delx: number, dely: number }, newscale: number, firstime: boolean) {
+    spatialTrans(trans: { delx: number, dely: number }, newscale: number) {
         // let mat = Matrix.Identity();
         // mat.setRowFromFloats(0, newscale, 0, 0, trans.delx);
         // mat.setRowFromFloats(1, 0, newscale, 0, trans.dely);
@@ -293,7 +425,7 @@ export class EDim {
 
         if (this.block.children != null) {
             this.block.children.forEach((child, idx) => {
-                child.edim.spatialTrans(trans, newscale, firstime);
+                child.edim.spatialTrans(trans, newscale);
             });
         }
     }
