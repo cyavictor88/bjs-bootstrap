@@ -92,7 +92,7 @@ export class EDim {
     setDim(): Dim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
-        console.log(block.lvl,block.type);
+        console.log(block.lvl, block.type);
         if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn) {
             return { scale: 1, xs: [0, block.text.length], ys: [0, 1], text: block.text };
         }
@@ -189,60 +189,80 @@ export class EDim {
             let xys = this.get_xyBounds_from_children();
 
             let xbuff = 0.5;
-            let x1p:number;
-            if(colidx==cols-1)
-            {
-                x1p=xys.xs[1];
+            let x1p: number;
+            if (colidx == cols - 1) {
+                x1p = xys.xs[1];
             }
-            else
-            {
-                for (let i = rowidx; i < rows; i++) {
-                    
-                    
+            else {
+                let precolmaxx0 = Number.MIN_SAFE_INTEGER;
+                for (let i = rowidx; i < rows - 1; i++) {
+                    if (tabcoords.xs[i][colidx + 1][0] > precolmaxx0)
+                        precolmaxx0 = tabcoords.xs[i][colidx + 1][0];
+                }
+                x1p = xbuff + precolmaxx0;
+            }
+            let delx = x1p - xys.xs[1];
+
+
+            let ybuff = 0.2;
+            let y0p: number;
+            if (rowidx == rows - 1) {
+                y0p = xys.ys[0];
+            }
+            else {
+                let precolmaxy1 = Number.MIN_SAFE_INTEGER;
+                for (let j = 0; j < cols - 1; j++) {
+                    if (tabcoords.ys[rowidx + 1][j][1] > precolmaxy1)
+                        precolmaxy1 = tabcoords.ys[rowidx + 1][j][1];
+                }
+                y0p = ybuff + precolmaxy1;
+            }
+            let dely = y0p - xys.ys[0];
+            let maxx = Number.MIN_SAFE_INTEGER;
+            let maxx1 = Number.MIN_SAFE_INTEGER;
+            let maxx0 = Number.MIN_SAFE_INTEGER;
+            for (let i = rowidx; i < rows - 1; i++) {
+                if (tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0] > maxx) {
+                    maxx = tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0];
+                    maxx1 = tabcoords.xs[i][colidx][1];
+                    maxx0 = tabcoords.xs[i][colidx][0];
+                }
+            }
+            for (let i = rowidx; i <= rows - 1; i++) {
+                let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
+                //    this.spatialTrans(delx1)
+                for (let j = 0; j < colidx; j++) {
+                    // tabcoords.
+                    // this.spatialTrans(delx1)
                 }
             }
 
-
-            if(rows==rowIdx+1 && cols==colIdx+1 )
-            {
-                let xys = this.get_xyBounds_from_children();
-                tabcoords.xs[rowIdx][colIdx]=xys.xs;
-                tabcoords.ys[rowIdx][colIdx]=xys.ys;
-                return { scale: 1, xs: xys.xs, ys: xys.ys };
-            }
-            else
-            {
-                let refrowidx = rowIdx;
-                let refcolidx = colIdx-1;
-                if(cols==colIdx)
-                {
-                    refcolidx=colIdx;
-                }
-                else if(rowIdx==1)
-                {
-                    refcolidx=1;
-                }
-            }
-
-            
 
 
         }
 
 
     }
-    getTabInfoUsingRowIdxColIdx(tab:MMFlatStruct,rowIdx:number,colIdx:number):TabInfo{
+
+    getDelX_for_put_in_center_of_bigger_xs(x0: number, x1: number, x0b: number, x1b: number): number {
+
+        let l = ((x1b - x0b) - (x1 - x0)) / 2
+        let delx = x0 - l - x0b;
+        return delx;
+    }
+    getTabInfoUsingRowIdxColIdx(tab: MMFlatStruct, rowIdx: number, colIdx: number): TabInfo {
         this.grandFlatArr.forEach(ele => {
-            if (ele.ownedDetails!=null && ele.ownedDetails.length>0) {
-                let owndet = lodash.findLast(ele.ownedDetails, function (p) { 
-                    return p.tabDetail != null && p.tabDetail.tab.uuid==tab.uuid &&
-                p.tabDetail.rowIdx==rowIdx && p.tabDetail.colIdx==colIdx})
-                if (owndet!=undefined) {
+            if (ele.ownedDetails != null && ele.ownedDetails.length > 0) {
+                let owndet = lodash.findLast(ele.ownedDetails, function (p) {
+                    return p.tabDetail != null && p.tabDetail.tab.uuid == tab.uuid &&
+                        p.tabDetail.rowIdx == rowIdx && p.tabDetail.colIdx == colIdx
+                })
+                if (owndet != undefined) {
                     return owndet.tabDetail;
                 }
             }
         });
-        return {tab:this.grandFlatArr[0],rowIdx:0,colIdx:0};
+        return { tab: this.grandFlatArr[0], rowIdx: 0, colIdx: 0 };
 
     }
 
