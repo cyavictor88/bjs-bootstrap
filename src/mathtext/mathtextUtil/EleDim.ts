@@ -76,7 +76,8 @@ export class EDim {
             {
                 console.log(tmpEdim.dim.xs[0]);
             }
-            tmpEdim.spatialTrans({delx: delx1, dely:0},1);
+            let curx0 = tmpEdim.dim.xs[0];
+            tmpEdim.spatialTrans({delx: -delx1, dely:0},1);
             if(delx1>0)
             {
                 console.log(tmpEdim.dim.xs[0]);
@@ -84,10 +85,12 @@ export class EDim {
             if(i==rowidx)
             {console.log("del1",delx1,rowidx,rows);continue;};
             // fix col infront of cur col
-            // for (let j = 0; j < colidx; j++) {
-            //     let tmpEdim = tabEdims[i][j];
-            //     tmpEdim.spatialTrans({delx: delx1, dely:0},1);
-            // }
+            for (let j = 0; j < colidx; j++) {
+                let tmpEdim2 = tabEdims[i][j];
+                let distanceBetweenMaxx0AndBeforetmpEdimx0 = Math.abs(maxx0-curx0);
+                let del2 = -distanceBetweenMaxx0AndBeforetmpEdimx0 ;
+                tmpEdim2.spatialTrans({delx: del2, dely:0},1);
+            }
         }
     }
 
@@ -200,7 +203,7 @@ export class EDim {
                 }
                 // else if (idx == 2) {
                 else if (ownedDetailed.pos == MP.Position.Up) {
-                    let newscale = .75;
+                    let newscale = .65;
                     let delx = baseEle_x1 - dim.xs[0];
                     let dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
@@ -224,7 +227,7 @@ export class EDim {
                     baseEle_y1 = dim.ys[1];
                 }
                 else {
-                    let newscale = .75;
+                    let newscale = .65;
                     let delx = baseEle_x1 - dim.xs[0];
                     let dely = 0;
                     if (ownedDetailed.pos == MP.Position.Down) {
