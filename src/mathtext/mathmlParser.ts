@@ -137,9 +137,8 @@ export interface MMFlatStruct {
     ownedDetails?: OwnedDetail[],
 
 
-    dim?: ED.Dim,
 
-    tabEdimCoords?:any[]
+    tabEdimCoords?:ED.EDim[][]
 
 
 
@@ -755,6 +754,7 @@ export class MMParser {
 
         // making edim for each block from leaves
         localLvlStack.forEach(block => {
+            console.log("make edim for", block.type)
             block.edim=new ED.EDim(this.grandFlatArr,block);
         });
         console.log("=============");
@@ -780,7 +780,7 @@ export class MMParser {
 
 
     putinSceneArrayWithED(scene: Scene, layerMask: number) {
-        let xoffset = -40;
+        let xoffset = 0;
         let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
 
 
