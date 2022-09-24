@@ -223,17 +223,22 @@ export class MMParser {
 
         this.assembleMEleArrByRecuOnObject("mrow", this.mathmlXml, 0, this.parsedStringArr);
 
+
         this.assembleGrandMTagNode();
+
+
+        
         console.log('******staaaaaart asemGrandFlatArr****');
         this.assembleGrandFlatArr(this.grandMTagNode);
         console.log('******enddddd asemGrandFlatArr*******');
 
 
+
         this.assembleGrandFlatWithCloseArr();
+        console.log('******enddddd asemGrandFlatArrCloser*******');
 
         this.addRowColAttriForTablesInFlatArrs();
         // this.addRowColAttriForTablesInClosedFlatArrs();
-
 
         // console.log(this.grandFlatArrWithClose);
         // console.log(this.grandFlatArr);
@@ -255,6 +260,7 @@ export class MMParser {
 
         // this.markTableInfoinArr();
         this.fillinBelongArr();
+
 
         // this.fillinEdimGRandBlockTree();
 
@@ -279,7 +285,7 @@ export class MMParser {
 
         // using grandblocktree, assemble lvlstack which contains dimension for chars
         this.assembleLvlStack(this.grandLBlockTree);
-
+        console.log('******enddddd lvlStack*******');
 
 
 
@@ -760,17 +766,17 @@ export class MMParser {
         console.log("=============");
         
         lodash.reverse(localLvlStack);// now array goes from head to leaves again
-        localLvlStack.forEach(block => {
-            console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
-            console.log(block.edim.dim.scale);
-            if (block.text != null)
-            {
-                console.log(block.text);
-                console.log(block.edim.dim.xs)
-                console.log(block.edim.dim.ys)
-                console.log("-----");
-            }
-        });
+        // localLvlStack.forEach(block => {
+        //     console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
+        //     console.log(block.edim.dim.scale);
+        //     if (block.text != null)
+        //     {
+        //         console.log(block.text);
+        //         console.log(block.edim.dim.xs)
+        //         console.log(block.edim.dim.ys)
+        //         console.log("-----");
+        //     }
+        // });
 
         this.lvlStack=localLvlStack;
 
@@ -1054,7 +1060,9 @@ export class MMParser {
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msup, ele, ownedDetailsinfo);
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.msubsup, ele, ownedDetailsinfo);
             ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.mtable, ele, ownedDetailsinfo);
-
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.mover, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.munder, ele, ownedDetailsinfo);
+            ownedDetailsinfo = putinOrPulloutFromOwnedDetailsinfo(LBlockType.munderover, ele, ownedDetailsinfo);
             if (ele.closeFor!=null) continue;
 
             for (let j = ownedDetailsinfo.length - 1; j >= 0; j--) {
@@ -1070,7 +1078,7 @@ export class MMParser {
                                 tmpDetail.pos = Position.Down;
                         }
                     }
-                    if (tmpDetail.owner.type == LBlockType.msub) {
+                    if (tmpDetail.owner.type == LBlockType.msub || tmpDetail.owner.type == LBlockType.munder ) {
                         switch (tmpDetail.counter) {
                             case 0:
                                 tmpDetail.pos = Position.Mid;
@@ -1079,7 +1087,7 @@ export class MMParser {
                                 tmpDetail.pos = Position.Down;
                         }
                     }
-                    if (tmpDetail.owner.type == LBlockType.msup) {
+                    if (tmpDetail.owner.type == LBlockType.msup || tmpDetail.owner.type == LBlockType.mover  ) {
                         switch (tmpDetail.counter) {
                             case 0:
                                 tmpDetail.pos = Position.Mid;
@@ -1088,7 +1096,7 @@ export class MMParser {
                                 tmpDetail.pos = Position.Up;
                         }
                     }
-                    if (tmpDetail.owner.type == LBlockType.msubsup) {
+                    if (tmpDetail.owner.type == LBlockType.msubsup || tmpDetail.owner.type == LBlockType.munderover) {
                         switch (tmpDetail.counter) {
                             case 0:
                                 tmpDetail.pos = Position.Mid;
@@ -1100,6 +1108,7 @@ export class MMParser {
                                 tmpDetail.pos = Position.Up;
                         }
                     }
+                   
                 }
 
             }
@@ -1586,7 +1595,7 @@ export class MMParser {
             mmstruct.attriArr = curNode.attriArr;
         }
 
-        console.log(str);
+        // console.log(str);
         this.grandFlatArr.push(mmstruct);
 
         curNode.children.forEach(element => {

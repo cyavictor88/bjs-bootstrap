@@ -156,14 +156,68 @@ export class EDim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
         console.log(block.lvl, block.type);
-        if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn) {
-            let textstr = block.text.toString();
-            return { scale: 1, xs: [0, textstr.length], ys: [0, 1], text: textstr };
+        // munderover munder mover
+        if (block.type == MP.LBlockType.munderover || block.type == MP.LBlockType.mover || block.type == MP.LBlockType.munder  ) {
+            let baseEle_y0 = 0;
+            let baseEle_y1 = 0;
+            let baseEle_x1 = 0;
+            let baseEle_x0 = 0;
+
+            block.children.forEach((child, idx) => {
+                let dim = child.edim.dim;
+                let eleinArray = this.grandFlatArr[child.idxInArray];
+                let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
+                console.log(ownedDetailed);
+                // if (idx == 0) {
+                if (ownedDetailed.pos == MP.Position.Mid) {
+                    baseEle_x1 = dim.xs[1];
+                    baseEle_y0 = dim.ys[0];
+                    baseEle_y1 = dim.ys[1];
+                    baseEle_x0 = dim.xs[0];
+
+                }
+                // else if (idx == 1) {
+                else if (ownedDetailed.pos == MP.Position.Down) {
+                    let newscale = .65;
+                    let delx = baseEle_x0 - dim.xs[0];
+                    let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 1);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
+                }
+                // else if (idx == 2) {
+                else if (ownedDetailed.pos == MP.Position.Up) {
+                    let newscale = .65;
+                    let delx = baseEle_x0 - dim.xs[0];
+                    let dely = (baseEle_y1 - baseEle_y0) ;
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
+                }
+            });
+            let xys = this.get_xyBounds_from_children();
+            return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
+
+      
+
+        // mi mo mn mtext
+        if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn || block.type == MP.LBlockType.mtext) {
+
+            let textstr="";
+            if(block.text!=null)
+            {
+                textstr = block.text.toString();
+            }
+            let dizscale = 1;
+            if(textstr==="∮" || textstr==="∫")
+                dizscale = 1.5;
+            return { scale: dizscale, xs: [0, textstr.length * dizscale], ys: [0.5-dizscale/2, 0.5+dizscale/2], text: textstr };
+        }
+
+        // mstyle
         if (block.type == MP.LBlockType.mstyle) {
             let xys = this.get_xyBounds_from_children();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
+
+        // mrow
         if (block.type == MP.LBlockType.mrow) {
             let y0 = Number.MAX_SAFE_INTEGER;
             let y1 = Number.MIN_SAFE_INTEGER;
@@ -179,7 +233,9 @@ export class EDim {
             return { scale: 1, xs: [block.children[0].edim.dim.xs[0], x1], ys: [y0, y1] };
 
         }
-        if (block.type == MP.LBlockType.msubsup) {
+
+        // msubsup msub msup
+        if (block.type == MP.LBlockType.msubsup || block.type == MP.LBlockType.msub || block.type == MP.LBlockType.msup) {
             let baseEle_y0 = 0;
             let baseEle_y1 = 0;
             let baseEle_x1 = 0;
@@ -196,59 +252,33 @@ export class EDim {
                 }
                 // else if (idx == 1) {
                 else if (ownedDetailed.pos == MP.Position.Down) {
-                    let newscale = .75;
+                    let newscale = .65;
                     let delx = baseEle_x1 - dim.xs[0];
-                    let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                    let dely = baseEle_y0  -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
                 // else if (idx == 2) {
                 else if (ownedDetailed.pos == MP.Position.Up) {
                     let newscale = .65;
                     let delx = baseEle_x1 - dim.xs[0];
-                    let dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
+                    let dely = baseEle_y0 + (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
             });
             let xys = this.get_xyBounds_from_children();
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
-        if (block.type == MP.LBlockType.msub || block.type == MP.LBlockType.msup) {
 
-            let baseEle_y0 = 0;
-            let baseEle_y1 = 0;
-            let baseEle_x1 = 0;
-            block.children.forEach((child, idx) => {
-                let dim = child.edim.dim;
-                let eleinArray = this.grandFlatArr[child.idxInArray];
-                let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
-                if (ownedDetailed.pos == MP.Position.Mid) {
-                    baseEle_x1 = dim.xs[1];
-                    baseEle_y0 = dim.ys[0];
-                    baseEle_y1 = dim.ys[1];
-                }
-                else {
-                    let newscale = .65;
-                    let delx = baseEle_x1 - dim.xs[0];
-                    let dely = 0;
-                    if (ownedDetailed.pos == MP.Position.Down) {
-                        dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
-                    }
-                    else if (ownedDetailed.pos == MP.Position.Up) {
-                        dely = (baseEle_y1 - baseEle_y0) - 0.5 * (newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 2);
-                    }
-                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
-                }
-            });
-            let xys = this.get_xyBounds_from_children();
-            return { scale: 1, xs: xys.xs, ys: xys.ys };
-        }
+    
+
+        // mtr mtable
         if (block.type == MP.LBlockType.mtr || block.type == MP.LBlockType.mtable) {
             let xys = this.get_xyBounds_from_children();
             console.log(xys);
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
 
-
+        // mtd
         if (block.type == MP.LBlockType.mtd) {
 
             let ownedDetail = lodash.findLast(this.grandFlatArr[block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
@@ -266,21 +296,6 @@ export class EDim {
                 return { scale: 1, xs: xys.xs, ys: xys.ys };
             }
 
-            // else
-            // {
-            //     console.log("mts 2222");
-            //     let x1p = tabEdims[rows - 1][cols - 1].dim.xs[0]; 
-            //     console.log(x1p,"x1p");
-
-            //     let delx = x1p - xys.xs[1];
-            //     block.children[0].edim.spatialTrans({ delx: delx, dely: 0 }, 1);
-            //     xys = this.get_xyBounds_from_children();
-            //     console.log(xys.xs);
-            //     return { scale: 1, xs: xys.xs, ys: xys.ys };
-
-
-
-            // }
             // last row
             if (rowidx == rows - 1) {
                 let xbuff = 0.5;
@@ -290,7 +305,6 @@ export class EDim {
                 xys = this.get_xyBounds_from_children();
                 return { scale: 1, xs: xys.xs, ys: xys.ys };
             }
-
 
             //  entries above last row
             let ybuff = 0.2;
@@ -312,7 +326,6 @@ export class EDim {
             }
 
 
-
             realx1Pos = sameColmaxx1;
             let delx = realx1Pos - xys.xs[1];
             block.children[0].edim.spatialTrans({ delx: delx, dely: dely }, 1);
@@ -320,89 +333,6 @@ export class EDim {
             return { scale: 1, xs: xys.xs, ys: xys.ys };
 
 
-            // let maxx = xys.xs[1]-xys.xs[0];
-            // let maxx1 = xys.xs[1];
-            // let maxx0 = xys.xs[0];
-            // for (let i = rowidx+1; i < rows ; i++) {
-            //     if (tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0] > maxx) {
-            //         maxx = tabEdims[i][colidx].dim.xs[1] - tabEdims[i][colidx].dim.xs[0];
-            //         maxx1 = tabEdims[i][colidx].dim.xs[1];
-            //         maxx0 =  tabEdims[i][colidx].dim.xs[0];
-            //     }
-            // }
-            // for (let i = rowidx+1; i <= rows - 1; i++) {
-            //             let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
-
-            //             //    this.spatialTrans(delx1)
-            //             for (let j = 0; j < colidx; j++) {
-            //                 // tabcoords.
-            //                 // this.spatialTrans(delx1)
-            //             }
-            //         }
-
-
-            // let xbuff = 0.5;
-            // let x1p: number;
-            // if (colidx == cols - 1) {
-            //     let colmaxx1 = Number.MIN_SAFE_INTEGER;
-
-            //     for (let i = rowidx; i < rows - 1; i++) {
-            //         if (tabEdims[i][colidx].dim.xs[1] > colmaxx1)
-            //             colmaxx1 = tabEdims[i][colidx + 1].dim.xs[0];
-            //     }
-            //     x1p = colmaxx1;
-            // }
-            // else {
-            //     let previousColmaxx0 = Number.MIN_SAFE_INTEGER;
-            //     for (let i = rowidx; i < rows - 1; i++) {
-            //         if (tabEdims[i][colidx + 1].dim.xs[0] > previousColmaxx0)
-            //             previousColmaxx0 = tabEdims[i][colidx + 1].dim.xs[0];
-            //     }
-            //     x1p = xbuff + previousColmaxx0;
-            // }
-            // let delx = x1p - xys.xs[1];
-
-
-            //     let ybuff = 0.2;
-            //     let y0p: number;
-            //     if (rowidx == rows - 1) {
-            //         y0p = xys.ys[0];
-            //     }
-            //     else {
-            //         let precolmaxy1 = Number.MIN_SAFE_INTEGER;
-            //         for (let j = 0; j < cols - 1; j++) {
-            //             if (tabcoords.ys[rowidx + 1][j][1] > precolmaxy1)
-            //                 precolmaxy1 = tabcoords.ys[rowidx + 1][j][1];
-            //         }
-            //         y0p = ybuff + precolmaxy1;
-            //     }
-            //     let dely = y0p - xys.ys[0];
-            //     this.spatialTrans({delx:delx,dely:dely},1);
-            //     tabcoords.xs[rowidx][colidx] = this.dim.xs
-            //     tabcoords.ys[rowidx][colidx] = this.dim.ys
-
-
-
-
-            //     let maxx = Number.MIN_SAFE_INTEGER;
-            //     let maxx1 = Number.MIN_SAFE_INTEGER;
-            //     let maxx0 = Number.MIN_SAFE_INTEGER;
-            //     for (let i = rowidx; i < rows - 1; i++) {
-            //         if (tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0] > maxx) {
-            //             maxx = tabcoords.xs[i][colidx][1] - tabcoords.xs[i][colidx][0];
-            //             maxx1 = tabcoords.xs[i][colidx][1];
-            //             maxx0 = tabcoords.xs[i][colidx][0];
-            //         }
-            //     }
-            //     for (let i = rowidx; i <= rows - 1; i++) {
-            //         let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tabcoords.xs[i][colidx][0], tabcoords.xs[i][colidx][1], maxx0, maxx1)
-
-            //         //    this.spatialTrans(delx1)
-            //         for (let j = 0; j < colidx; j++) {
-            //             // tabcoords.
-            //             // this.spatialTrans(delx1)
-            //         }
-            //     }
 
 
 
