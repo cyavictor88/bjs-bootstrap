@@ -62,6 +62,7 @@ export class MathMlStringMesh {
 
         // will break things tho// let spacescode = ["0020","00a0","1680","180e","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","200a","200b","202f","205f","3000","feff"]
         // let spaces_or_null_code = ["00a0","0020","2061"];
+
         for (let i = 0; i < mString.length; i++) {
             let dizcode=mString[i].charCodeAt(0).toString(16).padStart(4, "0");
                 
@@ -80,8 +81,25 @@ export class MathMlStringMesh {
             };
             this.jsonMeshes.push(newmesh);
             
+            let spaceMeshExample = false;
+            if(spaceMeshExample)
+            {
+                let key = "USPACE";
+                let xlen=0.6;
+                let ylen=1.2;
+                let ystart=-0.3;
+                let xstart=0;
+                let newmesh: TMeshJson = {
+                    char: mString[i],
+                    uni: key,
+                    verts: [xstart, ystart, 0, xstart, ystart + ylen, 0, xstart+xlen, ystart + ylen, 0, xstart+xlen, ystart, 0],
+                    tris: [0, 1, 2, 3, 0, 2],
+                    bbox: [0, 0, 0, 0]
+                };
+                this.jsonMeshes.push(newmesh);
+            }
 
-        }
+        };
 
         let xoffset = 0;
         for (let i = 0; i < this.jsonMeshes.length; i++) {
