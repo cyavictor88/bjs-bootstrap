@@ -201,7 +201,7 @@ export class EDim {
         if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn || block.type == MP.LBlockType.mtext) {
             let textstr = block.text.toString();
             let dizscale = 1;
-            if(textstr==="∮" || textstr==="∫")
+            if(textstr==="∮" || textstr==="∫") // make integral symbol bigger
                 dizscale = 1.5;
             return { scale: dizscale, xs: [0, textstr.length * dizscale], ys: [0.5-dizscale/2, 0.5+dizscale/2], text: textstr };
         }
