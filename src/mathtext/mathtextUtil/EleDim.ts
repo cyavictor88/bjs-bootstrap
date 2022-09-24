@@ -199,12 +199,7 @@ export class EDim {
 
         // mi mo mn mtext
         if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn || block.type == MP.LBlockType.mtext) {
-
-            let textstr="";
-            if(block.text!=null)
-            {
-                textstr = block.text.toString();
-            }
+            let textstr = block.text.toString();
             let dizscale = 1;
             if(textstr==="∮" || textstr==="∫")
                 dizscale = 1.5;

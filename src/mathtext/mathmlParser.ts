@@ -786,7 +786,7 @@ export class MMParser {
 
 
     putinSceneArrayWithED(scene: Scene, layerMask: number) {
-        let xoffset = 0;
+        let xoffset = -30;
         let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
 
 
@@ -797,9 +797,12 @@ export class MMParser {
                 let eledim = ele.edim.dim;
                 let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
                 for (let i = 0; i < ele.text.toString().length; i++) {
-                    const char = ele.text.toString()[i];
+                    const onechar = ele.text.toString()[i];
+                    
                     let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
-                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, eledim.scale);
+                    let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale);
+
+                   
                     mathtxts.toTransedMesh();
                 }
                 // let mathtxts = new MathText.MathString(text, scene, layerMask);
@@ -1285,50 +1288,7 @@ export class MMParser {
     getBlockEnd(block: LBlock, bx0: number, by0: number, bscale: number,
         miny0: number, maxy1: number, minx0: number, maxx1: number): [number, number] {
 
-        // if (block.type == LBlockType.mtable) {
-        //     let numCol = block["col"];
-        //     let numRow = block["row"];
-        //     console.log("mtable row:" + numRow.toString() + " col:" + numCol.toString());
-
-        //     const [_, y1] = this.getBlockEndForMTable(block, bx0, by0, bscale, miny0, maxy1, minx0, maxx1);
-        //     let maxRowYRange = y1 - by0;
-        //     let maxRowXRange = 0;
-
-        //     let mtrminy = Number.MAX_SAFE_INTEGER;
-        //     let mtrmaxy = Number.MIN_SAFE_INTEGER;
-        //     function getTallestRowYrange(disBlock: LBlock) {
-        //         if (disBlock.children != null && disBlock.children.length > 0) {
-        //             disBlock.children.forEach((child) => {
-        //                 if (child.type == LBlockType.mtr) {
-        //                     if (child.x1 - child.x0 > maxRowXRange) maxRowXRange = child.x1 - child.x0;
-        //                     if (child.miny0 < mtrminy) mtrminy = child.miny0;
-        //                     if (child.maxy1 > mtrmaxy) mtrmaxy = child.maxy1;
-        //                 }
-        //                 else {
-        //                     getTallestRowYrange(child);
-        //                 }
-        //             });
-        //         }
-        //         return;
-        //     }
-        //     getTallestRowYrange(block);
-        //     console.log("mtable x1:" + (bx0 + maxRowXRange).toString() + " y1:" + (by0 + maxRowYRange * numRow).toString());
-
-
-
-
-        //     block.x1 = bx0 + maxRowXRange;
-        //     block.y1 = by0 + maxRowYRange * numRow;
-
-        //     if (block.y1 > maxy1) block.maxy1 = block.y1;
-        //     // if(block.y1>maxy1 )block.maxy1 = block.y1;
-        //     block.miny0 = mtrminy;
-        //     block.maxy1 = mtrmaxy;
-
-        //     return [bx0 + maxRowXRange, by0 + maxRowYRange * numRow];
-        // };
-
-        // normal Mtag element
+  
         let bx1 = 0;
         let by1 = 0;
         let properBx0 = bx0;
@@ -1384,17 +1344,7 @@ export class MMParser {
             // console.log(block);
             let realBTextLen = block.text.toString().length;
 
-            // for (let i = 0; i < block.text.toString().length; i++) {
-            //     if (block.text.toString().charCodeAt(i).toString(16).padStart(4, "0")=="2061")
-            //     {
-            //         console.log("find itttt"+realBTextLen);
-            //         realBTextLen-=1;
-            //         if(realBTextLen<0)realBTextLen=0;
-            //         console.log("find itttt"+realBTextLen);
-
-            //     }
-
-            // }
+            
 
             bx1 = bx0 + block.scale * realBTextLen;
             by1 = by0 + block.scale * 1;
@@ -1580,12 +1530,19 @@ export class MMParser {
 
         let str = "lvl:" + curNode.lvl + " name:" + curNode.type;
 
-
+        if(curNode.type==LBlockType.mtext )
+        {
+            if( curNode.text!=null)
+            curNode.text+='\u0020'; //u0020 is space
+            else
+            curNode.text='\u0020';
+        }
         if (curNode.text != null) {
             str += " text:" + curNode.text;
-            if (curNode.text.toString().charCodeAt(0).toString(16).padStart(4, "0") == "2061") curNode.text = " "; //  null char null space
+            if (curNode.text.toString().charCodeAt(0).toString(16).padStart(4, "0") == "2061") curNode.text = '\u0020'; //  null char null space
             mmstruct.text = curNode.text;
         }
+        
         if (curNode.attriArr != null) {
             str += " attri:[";
             curNode.attriArr.forEach(attri => {
@@ -1595,7 +1552,7 @@ export class MMParser {
             mmstruct.attriArr = curNode.attriArr;
         }
 
-        // console.log(str);
+        console.log(str);
         this.grandFlatArr.push(mmstruct);
 
         curNode.children.forEach(element => {
@@ -1667,6 +1624,8 @@ export class MMParser {
 
     assembleMEleArrByRecuOnObject(prenodeKey, curObj, level, cuStringArr) {
 
+
+
         if (Object.prototype.toString.call(curObj) === '[object Array]') {
             // recuArray(prenodeKey, curObj, level,cuStringArr);
             // return;
@@ -1688,7 +1647,7 @@ export class MMParser {
         if (lodash.includes(keys, textKey)) {
             // console.log(prenodeKey + " " + textKey + " " + curObj[textKey] + " level:" + (level - 1).toString());
             //cuStringArr.push(prenodeKey + " " + textKey + " " + curObj[textKey] + " level:" + (level - 1).toString());
-            var tmpMText: MEle = { node: prenodeKey, lvl: level - 1, text: curObj[textKey], type: MEleType.Text };
+            var tmpMText: MEle = { node: prenodeKey, lvl: level - 1, text: curObj[textKey].toString(), type: MEleType.Text };
             this.meleArr.push(tmpMText);
 
 
