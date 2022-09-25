@@ -289,8 +289,30 @@ export class MMParser {
         this.assembleLvlStack(this.grandLBlockTree);
         console.log('******enddddd lvlStack*******');
 
+        this.fenceAdjustment();
+
+        this.alignVertically();
 
 
+
+    }
+
+    alignVertically(){
+        console.log("vert centeringggggggggggggggggggggggggg");
+        console.log(this.lvlStack[0].edim.dim.ys);
+        let y1c = (this.lvlStack[0].edim.dim.ys[1]+this.lvlStack[0].edim.dim.ys[0])/2;
+        for (let i=0;i<this.grandFlatArr.length;i++)
+        {
+            let ele=this.grandFlatArr[i];
+            let y0l = ele.refLblock.edim.dim.ys[0];
+            let y0h = ele.refLblock.edim.dim.ys[1];
+            let y0c = (y0l+y0h)/2;
+            // if(y1c>y0c)
+            //     ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:y1c-y0c},1);
+            // else
+            //    ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:-(y1c-y0c)},1);
+        }
+        
     }
 
 
@@ -744,7 +766,7 @@ export class MMParser {
  
     // using grandblocktree, assemble lvlstack which contains dimension for chars
     assembleLvlStack(initblock: LBlock) {
-        console.log("start asembleLvlStack:")
+        console.log("start assembleLvlStack:")
 
         let localLvlStack : LBlock[]= [];
         let stack = [initblock];
@@ -768,40 +790,6 @@ export class MMParser {
         console.log("=============");
         lodash.reverse(localLvlStack);// now array goes from head to leaves again
 
-        //taking care of fence [], {},()
-        localLvlStack.forEach((block,bidx) => {
-            // console.log("make edim for", block.type);
-            let eleinArray = this.grandFlatArr[block.idxInArray];
-            if(eleinArray.attriArr!=null)
-            {
-                eleinArray.attriArr.forEach(element => {
-                    if(element.name==='fence')
-                    {   
-                        let childIdx = 0;
-                        for (let i =0;i<block.parent.children.length;i++)
-                        {
-                            if(block.parent.children[i].uuid===block.uuid)
-                            {
-                                childIdx=i;
-                                break;
-                            }
-                        }
-                        if(eleinArray.text==="[" || eleinArray.text==="(" || eleinArray.text==="{")
-                        {
-                            let tableBlock=block.parent.children[childIdx+1]; 
-                            block.edim.adjustForFence(true,tableBlock,bidx+2,localLvlStack);
-                        }
-                        else
-                        {
-                            let tableBlock = block.parent.children[childIdx-1]; //if is ] ) }
-                            block.edim.adjustForFence(false,tableBlock,bidx+1,localLvlStack);
-                        }
-                        
-                    }
-                });
-            }
-        });
-
         
         // localLvlStack.forEach(block => {
         //     console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
@@ -818,6 +806,54 @@ export class MMParser {
         this.lvlStack=localLvlStack;
 
         console.log("end asembleLvlStack:")
+
+    }
+
+    //taking care of fence [], {},()
+    fenceAdjustment()
+    {
+        let tableBlock:LBlock; 
+        for(let i=0;i<this.grandFlatArr.length;i++)
+        {
+            let ele = this.grandFlatArr[i];
+            if(ele.attriArr!=null )
+            {
+                ele.attriArr.forEach(attrEle => {
+                    if(attrEle.name==='fence')
+                    {   
+                        let childIdx = 0; // the idx for this fence's parent's children list
+                        let block=ele.refLblock;
+                        for (let k = 0 ;i<block.parent.children.length;k++)
+                        {
+                            if(block.parent.children[k].uuid===block.uuid)
+                            {
+                                childIdx=k;
+                                break;
+                            }
+                        }
+                        let delx = 0;
+                        let startingAdjustidxForGrandFlatArr = 0;
+                        if(ele.text==="[" || ele.text==="(" || ele.text==="{" || ele.text==="|")
+                        {
+                            tableBlock=block.parent.children[childIdx+1];  //find the corresponding table block
+                            delx = block.edim.adjustForFence(true,tableBlock); // dis adjust the table itself already
+                            startingAdjustidxForGrandFlatArr = tableBlock.idxInArray  + 1 ; //start adjusting starting from closing symbol
+                        }
+                        else // ],),}
+                        {
+                            delx = block.edim.adjustForFence(false,tableBlock); // dis leave the table untouched
+                            startingAdjustidxForGrandFlatArr = block.idxInArray + 1 ; // start adjusting start from the the next thing after closing symbol
+                        }
+                        for(let j=startingAdjustidxForGrandFlatArr;j<this.grandFlatArr.length;j++)
+                        {
+                            // console.log("moving ",this.grandFlatArr[j].text);
+                            this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:delx,dely:0},1);
+                        }
+                    }
+                });
+            }
+            console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
+        }
 
     }
 

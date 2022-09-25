@@ -42,17 +42,22 @@ export class EDim {
         }
 
     }
-    adjustForFence(openorclose:boolean,tableBlock: MP.LBlock,lvlbidx:number,lvlstack:LBlock[]){
-        console.log("adusting for fenceeeeeee")
+    adjustForFence(openorclose:boolean,tableBlock: MP.LBlock):number{
+        console.log("adusting for fenceeeeeee ",this.block.text)
         console.log(tableBlock.type);
         console.log(tableBlock.edim.dim);
         let newscale = tableBlock.edim.dim.ys[1]-tableBlock.edim.dim.ys[0];
         let orixlen = this.dim.xs[1]-this.dim.xs[0];
-        let delx  = (newscale * orixlen - orixlen)/2;
-        this.spatialTrans({delx: 0, dely:newscale/10}, 1);
+        let delx  = (newscale * orixlen - orixlen)/1.5;
+        this.spatialTransSingleEle({delx: 0, dely:newscale/10}, 1);
         this.dim.scale=newscale;
         if(openorclose)
-            tableBlock.edim.spatialTrans({delx: delx, dely:0}, 1);
+            tableBlock.edim.spatialTransSingleEle({delx: delx, dely:0}, 1);
+        return delx
+        // for(let i =idxgonnabepushed;i<this.grandFlatArr.length;i++)
+        // {
+        //     this.grandFlatArr[i].refLblock.edim.spatialTransSingleEle({delx: delx, dely:0}, 1);
+        // }
         // let aidx = lvlstack[lvlbidx[0]].idxInArray;
         // this.block.parent.children.forEach( (child)=>{
         //     if(!(child.uuid==this.block.uuid||child.uuid==tableBlock.uuid))
@@ -181,18 +186,19 @@ export class EDim {
     setDim(): Dim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
-        // console.log(block.lvl, block.type);
-        if(eleinArray.attriArr!=null)
-        {
-            eleinArray.attriArr.forEach(element => {
-                if(element.name==='fence')
-                {
-                    console.log(block.lvl, block.type);
-                    console.log(element.name,element.val);
+            // console.log(block.lvl, block.type,block.text);
 
-                }
-            });
-        }
+        // if(eleinArray.attriArr!=null)
+        // {
+        //     eleinArray.attriArr.forEach(element => {
+        //         if(element.name==='fence')
+        //         {
+        //             console.log(block.lvl, block.type);
+        //             console.log(element.name,element.val);
+
+        //         }
+        //     });
+        // }
         // munderover munder mover
         if (block.type == MP.LBlockType.munderover || block.type == MP.LBlockType.mover || block.type == MP.LBlockType.munder  ) {
             let baseEle_y0 = 0;
@@ -392,6 +398,17 @@ export class EDim {
             }
         });
         return { tab: this.grandFlatArr[0], rowIdx: 0, colIdx: 0 };
+
+    }
+    spatialTransSingleEle(trans: { delx: number, dely: number }, newscale: number){
+        this.dim.scale *= newscale;
+        let transMat = mathjs.multiply(mathjs.identity(3), newscale) as mathjs.Matrix;
+        transMat.subset(mathjs.index([0, 1, 2], [2]), [[trans.delx], [trans.dely], [1]]);
+        this.getbounds().forEach((b, idx) => {
+            let tmpmat = mathjs.multiply(transMat, mathjs.matrix([[b[0]], [b[1]], [1]])) as mathjs.Matrix;
+            this.dim.xs[idx] = tmpmat.get([0, 0]) as number;
+            this.dim.ys[idx] = tmpmat.get([1, 0]) as number;
+        });
 
     }
 
