@@ -104,8 +104,8 @@ class App {
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
        
        
-        // var [mathml, mmp] = trykatex("\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}");
-        var [mathml, mmp] = trykatex("\\text{a b x}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}=\\lim_{x \\to \\infty} sin(x) = \\begin{bmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzzz  \\end{bmatrix}");
+       // var [mathml, mmp] = trykatex("\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}");
+         var [mathml, mmp] = trykatex("\\text{a b}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) = \\begin{bmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{bmatrix}");
         
         
         // var [mathml,mmp]=trykatex("\\begin{bmatrix} \\begin{bmatrix} 1_{xy} & 2_x \\\\ a & b \\end{bmatrix} & 3 & 6 \\\\ a & b & c \\\\ z & w & q  \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");

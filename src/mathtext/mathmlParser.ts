@@ -138,7 +138,9 @@ export interface MMFlatStruct {
 
 
 
-    tabEdimCoords?:ED.EDim[][]
+    tabEdimCoords?:ED.EDim[][],
+
+    refLblock?:LBlock,
 
 
 
@@ -760,12 +762,47 @@ export class MMParser {
 
         // making edim for each block from leaves
         localLvlStack.forEach(block => {
-            console.log("make edim for", block.type)
+            // console.log("make edim for", block.type);
             block.edim=new ED.EDim(this.grandFlatArr,block);
         });
         console.log("=============");
-        
         lodash.reverse(localLvlStack);// now array goes from head to leaves again
+
+        //taking care of fence [], {},()
+        localLvlStack.forEach((block,bidx) => {
+            // console.log("make edim for", block.type);
+            let eleinArray = this.grandFlatArr[block.idxInArray];
+            if(eleinArray.attriArr!=null)
+            {
+                eleinArray.attriArr.forEach(element => {
+                    if(element.name==='fence')
+                    {   
+                        let childIdx = 0;
+                        for (let i =0;i<block.parent.children.length;i++)
+                        {
+                            if(block.parent.children[i].uuid===block.uuid)
+                            {
+                                childIdx=i;
+                                break;
+                            }
+                        }
+                        if(eleinArray.text==="[" || eleinArray.text==="(" || eleinArray.text==="{")
+                        {
+                            let tableBlock=block.parent.children[childIdx+1]; 
+                            block.edim.adjustForFence(true,tableBlock,bidx+2,localLvlStack);
+                        }
+                        else
+                        {
+                            let tableBlock = block.parent.children[childIdx-1]; //if is ] ) }
+                            block.edim.adjustForFence(false,tableBlock,bidx+1,localLvlStack);
+                        }
+                        
+                    }
+                });
+            }
+        });
+
+        
         // localLvlStack.forEach(block => {
         //     console.log(block.type + " " + block.lvl.toString() + " " + block.parent.type);
         //     console.log(block.edim.dim.scale);
@@ -786,7 +823,7 @@ export class MMParser {
 
 
     putinSceneArrayWithED(scene: Scene, layerMask: number) {
-        let xoffset = -30;
+        let xoffset = -33;
         let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
 
 
@@ -1405,6 +1442,8 @@ export class MMParser {
     };
     turnGrandFlatArrToGrandLBlockTree() {
         this.grandLBlockTree = { children: [], lvl: 0, scale: 1, type: LBlockType.mrow, uuid: this.grandFlatArr[0].uuid, idxInArray: 0, belongArr: [] };
+        this.grandFlatArr[0].refLblock=this.grandLBlockTree;
+
         this.grandLBlockTree.parent = this.grandLBlockTree;
         let parentOfnewLBlockArr = [this.grandLBlockTree];
 
@@ -1414,6 +1453,7 @@ export class MMParser {
             if (ele.closeFor == null) {
                 let parentOfnewLBlock = parentOfnewLBlockArr[ele.lvl - 1];
                 let newLBlock: LBlock = { lvl: ele.lvl, parent: parentOfnewLBlock, scale: parentOfnewLBlock.scale, type: LBlockType[ele.type], uuid: ele.uuid, idxInArray: i, belongArr: [] };
+                this.grandFlatArr[i].refLblock=newLBlock;
                 switch (ele.type) {
                     case LBlockType.mo:
                         newLBlock["text"] = ele.text;

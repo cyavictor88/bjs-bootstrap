@@ -42,6 +42,31 @@ export class EDim {
         }
 
     }
+    adjustForFence(openorclose:boolean,tableBlock: MP.LBlock,lvlbidx:number,lvlstack:LBlock[]){
+        console.log("adusting for fenceeeeeee")
+        console.log(tableBlock.type);
+        console.log(tableBlock.edim.dim);
+        let newscale = tableBlock.edim.dim.ys[1]-tableBlock.edim.dim.ys[0];
+        let orixlen = this.dim.xs[1]-this.dim.xs[0];
+        let delx  = (newscale * orixlen - orixlen)/2;
+        this.spatialTrans({delx: 0, dely:newscale/10}, 1);
+        this.dim.scale=newscale;
+        if(openorclose)
+            tableBlock.edim.spatialTrans({delx: delx, dely:0}, 1);
+        // let aidx = lvlstack[lvlbidx[0]].idxInArray;
+        // this.block.parent.children.forEach( (child)=>{
+        //     if(!(child.uuid==this.block.uuid||child.uuid==tableBlock.uuid))
+        //         child.edim.spatialTrans({delx: delx, dely:0}, 1);
+        // });
+
+        // for (let i=lvlbidx;i<lvlstack.length;i++)
+        // {
+        //     if (lvlstack[i].lvl-1==this.block.lvl)
+        //     {
+        //         //lvlstack[i].edim.spatialTrans({delx: delx, dely:0}, 1);
+        //     }
+        // }
+    }
     adjustTable() {
         let ownedDetail = lodash.findLast(this.grandFlatArr[this.block.idxInArray].ownedDetails, function (o) { return o.tabDetail != null; })
         let rows = ownedDetail.tabDetail.tab.rows;
@@ -74,16 +99,17 @@ export class EDim {
             let delx1 = this.getDelX_for_put_in_center_of_bigger_xs(tmpEdim.dim.xs[0], tmpEdim.dim.xs[1], maxx0, maxx1)
             if(delx1>0)
             {
-                console.log(tmpEdim.dim.xs[0]);
+                //console.log(tmpEdim.dim.xs[0]);
             }
             let curx0 = tmpEdim.dim.xs[0];
             tmpEdim.spatialTrans({delx: -delx1, dely:0},1);
             if(delx1>0)
             {
-                console.log(tmpEdim.dim.xs[0]);
+                //console.log(tmpEdim.dim.xs[0]);
             }
             if(i==rowidx)
-            {console.log("del1",delx1,rowidx,rows);continue;};
+            {//console.log("del1",delx1,rowidx,rows);
+            continue;};
             // fix col infront of cur col
             for (let j = 0; j < colidx; j++) {
                 let tmpEdim2 = tabEdims[i][j];
@@ -155,7 +181,18 @@ export class EDim {
     setDim(): Dim {
         let block = this.block;
         let eleinArray = this.grandFlatArr[block.idxInArray];
-        console.log(block.lvl, block.type);
+        // console.log(block.lvl, block.type);
+        if(eleinArray.attriArr!=null)
+        {
+            eleinArray.attriArr.forEach(element => {
+                if(element.name==='fence')
+                {
+                    console.log(block.lvl, block.type);
+                    console.log(element.name,element.val);
+
+                }
+            });
+        }
         // munderover munder mover
         if (block.type == MP.LBlockType.munderover || block.type == MP.LBlockType.mover || block.type == MP.LBlockType.munder  ) {
             let baseEle_y0 = 0;
@@ -167,7 +204,7 @@ export class EDim {
                 let dim = child.edim.dim;
                 let eleinArray = this.grandFlatArr[child.idxInArray];
                 let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
-                console.log(ownedDetailed);
+                //console.log(ownedDetailed);
                 // if (idx == 0) {
                 if (ownedDetailed.pos == MP.Position.Mid) {
                     baseEle_x1 = dim.xs[1];
@@ -238,7 +275,7 @@ export class EDim {
                 let dim = child.edim.dim;
                 let eleinArray = this.grandFlatArr[child.idxInArray];
                 let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
-                console.log(ownedDetailed);
+                //console.log(ownedDetailed);
                 // if (idx == 0) {
                 if (ownedDetailed.pos == MP.Position.Mid) {
                     baseEle_x1 = dim.xs[1];
@@ -269,7 +306,7 @@ export class EDim {
         // mtr mtable
         if (block.type == MP.LBlockType.mtr || block.type == MP.LBlockType.mtable) {
             let xys = this.get_xyBounds_from_children();
-            console.log(xys);
+            //console.log(xys);
             return { scale: 1, xs: xys.xs, ys: xys.ys };
         }
 
@@ -373,7 +410,7 @@ export class EDim {
         //     this.dim.ys[idx]=tmpmat.getRow(1).asArray()[0];
         // });
 
-        // using mathjs
+        // using mathjs to setup transMat matrix
         this.dim.scale *= newscale;
         let transMat = mathjs.multiply(mathjs.identity(3), newscale) as mathjs.Matrix;
         transMat.subset(mathjs.index([0, 1, 2], [2]), [[trans.delx], [trans.dely], [1]]);
