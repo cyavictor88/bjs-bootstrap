@@ -2,7 +2,7 @@ import { DefaultRenderingPipeline, RegisterMaterialPlugin, TimerState } from '@b
 import { Scene } from '@babylonjs/core/scene';
 import { CommonShadowLightPropertyGridComponent } from '@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/lights/commonShadowLightPropertyGridComponent';
 import * as lodash from 'lodash';
-import { transform } from 'lodash';
+import { first, transform } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { MathMlStringMesh } from './mathml2mesh';
@@ -291,7 +291,7 @@ export class MMParser {
 
         this.fenceAdjustment();
 
-        this.alignVertically();
+         this.alignVertically();
 
 
 
@@ -301,17 +301,33 @@ export class MMParser {
         console.log("vert centeringggggggggggggggggggggggggg");
         console.log(this.lvlStack[0].edim.dim.ys);
         let y1c = (this.lvlStack[0].edim.dim.ys[1]+this.lvlStack[0].edim.dim.ys[0])/2;
-        for (let i=0;i<this.grandFlatArr.length;i++)
+
+        let firstlvlchildren = this.grandLBlockTree.children;
+
+        for(let i=0;i<firstlvlchildren.length;i++)
         {
-            let ele=this.grandFlatArr[i];
-            let y0l = ele.refLblock.edim.dim.ys[0];
-            let y0h = ele.refLblock.edim.dim.ys[1];
+            let lvl1child=firstlvlchildren[i];
+            let y0l = lvl1child.edim.dim.ys[0];
+            let y0h = lvl1child.edim.dim.ys[1];
             let y0c = (y0l+y0h)/2;
             // if(y1c>y0c)
-            //     ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:y1c-y0c},1);
+                lvl1child.edim.spatialTrans({delx:0,dely:y1c-y0c},1);
             // else
-            //    ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:-(y1c-y0c)},1);
+                // lvl1child.edim.spatialTrans({delx:0,dely:y1c-y0c},1);
+
         }
+
+        // for (let i=0;i<this.grandFlatArr.length;i++)
+        // {
+        //     let ele=this.grandFlatArr[i];
+        //     let y0l = ele.refLblock.edim.dim.ys[0];
+        //     let y0h = ele.refLblock.edim.dim.ys[1];
+        //     let y0c = (y0l+y0h)/2;
+        //     // if(y1c>y0c)
+        //     //     ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:y1c-y0c},1);
+        //     // else
+        //     //    ele.refLblock.edim.spatialTransSingleEle({delx:0,dely:-(y1c-y0c)},1);
+        // }
         
     }
 
