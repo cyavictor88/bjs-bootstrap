@@ -39,6 +39,7 @@ export enum LBlockType {
     mstyle = "mstyle",
     mtext = "mtext",
     mdummy = "mdummy",
+    mfracmid = " mfracmid",
 
 }
 export interface MEle {
@@ -228,6 +229,8 @@ export class MMParser {
 
         this.assembleGrandMTagNode();
 
+        this.insertFractionHelper();
+
 
         
         console.log('******staaaaaart asemGrandFlatArr****');
@@ -295,6 +298,26 @@ export class MMParser {
 
 
 
+    }
+    insertFractionHelper()
+    {
+        let curStack=[this.grandMTagNode];
+        while (curStack.length>0)
+        {
+            let item = curStack.shift();
+            if(item.children!=null && item.children.length>0)
+            {
+                for( let i=0;i<item.children.length;i++)
+                {
+                    curStack.push(item.children[i])
+                }
+            }
+            if(item.type==LBlockType.mfrac)
+            {
+                var newMTag: MTag = { type: LBlockType.mfracmid, lvl: item.children[0].lvl, children: [] ,text:'-'};
+                item.children.splice(1,0,newMTag);
+            }
+        }
     }
 
     alignVertically(){
@@ -1167,6 +1190,9 @@ export class MMParser {
                                 tmpDetail.pos = Position.Up;
                                 break;
                             case 1:
+                                tmpDetail.pos = Position.Mid; //mfracmid
+                                break;
+                            case 2:
                                 tmpDetail.pos = Position.Down;
                         }
                     }
@@ -1242,14 +1268,16 @@ export class MMParser {
 
 
 
-
+            //logging out 
             // if (ele.text!=null) {
-                // console.log(ele.text)
-                // console.log(ele.ownedDetails)
-                // for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
-                //     console.log(ele.ownedDetails[j].pos)
-                // }
+            //     console.log(ele.text)
+            //     console.log(ele.ownedDetails)
+            //     for (let j = ele.ownedDetails.length - 1; j >= 0; j--) {
+            //         console.log(ele.ownedDetails[j].pos)
+            //     }
             // }
+
+
         }
 
 
@@ -1699,6 +1727,13 @@ export class MMParser {
             }
         });
         this.grandMTagNode = this.grandMTagNode.children[0];
+
+
+       
+
+
+
+
     }
 
 
