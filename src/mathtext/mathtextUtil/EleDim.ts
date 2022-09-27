@@ -201,6 +201,43 @@ export class EDim {
         // }
 
         // todo: mfrac
+        if (block.type == MP.LBlockType.mfrac  ) {
+            let baseEle_y0 = 0;
+            let baseEle_y1 = 0;
+            let baseEle_x1 = 0;
+            let baseEle_x0 = 0;
+            block.children.forEach((child, idx) => {
+                let dim = child.edim.dim;
+                let eleinArray = this.grandFlatArr[child.idxInArray];
+                let ownedDetailed = lodash.find(eleinArray.ownedDetails, function (o) { return o.owner.uuid === block.uuid; });
+                //console.log(ownedDetailed);
+                // if (idx == 0) {
+                if (ownedDetailed.pos == MP.Position.Mid) {
+                    baseEle_x1 = dim.xs[1];
+                    baseEle_y0 = dim.ys[0];
+                    baseEle_y1 = dim.ys[1];
+                    baseEle_x0 = dim.xs[0];
+
+                }
+                // else if (idx == 1) {
+                else if (ownedDetailed.pos == MP.Position.Down) {
+                    let newscale = .65;
+                    let delx = baseEle_x0 - dim.xs[0];
+                    let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 1);
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
+                }
+                // else if (idx == 2) {
+                else if (ownedDetailed.pos == MP.Position.Up) {
+                    let newscale = .65;
+                    let delx = baseEle_x0 - dim.xs[0];
+                    let dely = (baseEle_y1 - baseEle_y0) ;
+                    child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
+                }
+            });
+            let xys = this.get_xyBounds_from_children();
+            return { scale: 1, xs: xys.xs, ys: xys.ys };
+        }
+
 
         // munderover munder mover
         if (block.type == MP.LBlockType.munderover || block.type == MP.LBlockType.mover || block.type == MP.LBlockType.munder  ) {
@@ -243,8 +280,8 @@ export class EDim {
 
       
 
-        // mi mo mn mtext
-        if (block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn || block.type == MP.LBlockType.mtext) {
+        // mi mo mn mtext mfracmid
+        if (block.type == MP.LBlockType.mfracmid || block.type == MP.LBlockType.mi || block.type == MP.LBlockType.mo || block.type == MP.LBlockType.mn || block.type == MP.LBlockType.mtext) {
             let textstr = block.text.toString();
             let dizscale = 1;
             if(textstr==="∮" || textstr==="∫") // make integral symbol bigger

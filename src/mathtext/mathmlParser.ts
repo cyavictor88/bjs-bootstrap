@@ -39,7 +39,7 @@ export enum LBlockType {
     mstyle = "mstyle",
     mtext = "mtext",
     mdummy = "mdummy",
-    mfracmid = " mfracmid",
+    mfracmid = "mfracmid",
 
 }
 export interface MEle {
@@ -312,10 +312,10 @@ export class MMParser {
                     curStack.push(item.children[i])
                 }
             }
-            if(item.type==LBlockType.mfrac)
-            {
-                var newMTag: MTag = { type: LBlockType.mfracmid, lvl: item.children[0].lvl, children: [] ,text:'-'};
-                item.children.splice(1,0,newMTag);
+            if(item.type==LBlockType.mfrac)//mfracmid
+            { 
+                var newMTag: MTag = { type: LBlockType.mfracmid, lvl: item.children[0].lvl, children: [] ,text:'----'};
+                item.children.splice(0,0,newMTag);//insert "-" at beginning so the style is same with msubsup/munderover
             }
         }
     }
@@ -891,7 +891,7 @@ export class MMParser {
                     }
                 });
             }
-            console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
+           // console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
         }
 
     }
@@ -1187,10 +1187,10 @@ export class MMParser {
                     if (tmpDetail.owner.type == LBlockType.mfrac) {
                         switch (tmpDetail.counter) {
                             case 0:
-                                tmpDetail.pos = Position.Up;
+                                tmpDetail.pos = Position.Mid;
                                 break;
                             case 1:
-                                tmpDetail.pos = Position.Mid; //mfracmid
+                                tmpDetail.pos = Position.Up; //mfracmid
                                 break;
                             case 2:
                                 tmpDetail.pos = Position.Down;
@@ -1548,6 +1548,10 @@ export class MMParser {
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
                     case LBlockType.mtext:
+                        newLBlock["text"] = ele.text;
+                        parentOfnewLBlock.children.push(newLBlock);
+                        break;
+                    case LBlockType.mfracmid:
                         newLBlock["text"] = ele.text;
                         parentOfnewLBlock.children.push(newLBlock);
                         break;
