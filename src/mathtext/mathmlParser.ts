@@ -867,7 +867,17 @@ export class MMParser {
                         break;
                     }
                 }
-                block.children[0].edim.dim.xs[1]=this.lvlStack[lvlidx+1].edim.dim.xs[0];
+                for(let j=this.lvlStack[lvlidx].idxInArray;j<this.grandFlatArr.length;j++)
+                {
+                    // console.log("moving ",this.grandFlatArr[j].text);
+                    this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:1,dely:0},1);
+                }
+                block.children[0].edim.dim.xs[1]=this.lvlStack[lvlidx+1].edim.dim.xs[0]; //block.children[0] is the mfracmid
+                for(let j=this.lvlStack[lvlidx+1].idxInArray;j<this.grandFlatArr.length;j++)
+                {
+                    // console.log("moving ",this.grandFlatArr[j].text);
+                    this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:1,dely:0},1);
+                }
             }
         }
 
