@@ -200,7 +200,7 @@ export class EDim {
         //     });
         // }
 
-        // todo: mfrac
+        // mfrac
         if (block.type == MP.LBlockType.mfrac  ) {
             let baseEle_y0 = 0;
             let baseEle_y1 = 0;
@@ -230,7 +230,7 @@ export class EDim {
                 else if (ownedDetailed.pos == MP.Position.Up) {
                     let newscale = .65;
                     let delx = baseEle_x0 - dim.xs[0];
-                    let dely = (baseEle_y1 - baseEle_y0) ;
+                    let dely = (baseEle_y1 - baseEle_y0)/2 ;
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
             });

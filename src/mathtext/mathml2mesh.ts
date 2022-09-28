@@ -46,7 +46,7 @@ export class MathMlStringMesh {
     scale:number;
     // dashMesh: TMeshJson[];
 
-    constructor(mString: string, scene: Scene, masklayer: number, box: { x0: number, x1: number, y0: number, y1: number },scale:number) {
+    constructor(mString: string, scene: Scene, masklayer: number, box: { x0: number, x1: number, y0: number, y1: number },scale:number,ismfracmid:boolean) {
         this.scale=scale;
         this.stringBoundingBox = box;
         this.scene = scene;
@@ -59,6 +59,23 @@ export class MathMlStringMesh {
         this.mString = mString;
         this.jsonMeshes = [];
 
+        if(ismfracmid)
+        {
+            let key = "MFRACMID";
+            let xlen= (box.x1-box.x0);
+            let ylen=0.1;
+            let ystart=-0.;
+            let xstart=0;
+            let newmesh: TMeshJson = {
+                char: '-',
+                uni: key,
+                verts: [xstart, ystart, 0, xstart, ystart + ylen, 0, xstart+xlen, ystart + ylen, 0, xstart+xlen, ystart, 0],
+                tris: [0, 1, 2, 3, 0, 2],
+                bbox: [0, 0, 0, 0]
+            };
+            this.jsonMeshes.push(newmesh);
+            return;
+        }
 
         // will break things tho// let spacescode = ["0020","00a0","1680","180e","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","200a","200b","202f","205f","3000","feff"]
         // let spaces_or_null_code = ["00a0","0020","2061"];

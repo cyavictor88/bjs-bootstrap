@@ -293,6 +293,7 @@ export class MMParser {
         console.log('******enddddd lvlStack*******');
 
         this.fenceAdjustment();
+        this.mfracAdjustment();
 
          this.alignVertically();
 
@@ -314,7 +315,7 @@ export class MMParser {
             }
             if(item.type==LBlockType.mfrac)//mfracmid
             { 
-                var newMTag: MTag = { type: LBlockType.mfracmid, lvl: item.children[0].lvl, children: [] ,text:'----'};
+                var newMTag: MTag = { type: LBlockType.mfracmid, lvl: item.children[0].lvl, children: [] ,text:'-'};
                 item.children.splice(0,0,newMTag);//insert "-" at beginning so the style is same with msubsup/munderover
             }
         }
@@ -786,7 +787,7 @@ export class MMParser {
                     const char = ele.text.toString()[i];
                     // let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: (ele.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: ele.y0, y1: ele.y1 };
                     let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: 0, y0: ele.y0, y1: 0 };
-                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale);
+                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale,false);
                     mathtxts.toTransedMesh();
                 }
 
@@ -848,6 +849,32 @@ export class MMParser {
 
     }
 
+    mfracAdjustment()
+    {
+        let tableBlock:LBlock; 
+        for(let i=0;i<this.grandFlatArr.length;i++)
+        {
+            let ele = this.grandFlatArr[i];
+            if(ele.type==LBlockType.mfrac)
+            {
+                let lvlidx = 0; // the idx for this fence's parent's children list
+                let block=ele.refLblock;
+                for (let k = 0 ;k<this.lvlStack.length;k++)
+                {
+                    if(this.lvlStack[k].uuid===block.uuid)
+                    {
+                        lvlidx=k;
+                        break;
+                    }
+                }
+                block.children[0].edim.dim.xs[1]=this.lvlStack[lvlidx+1].edim.dim.xs[0];
+            }
+        }
+
+    }
+
+
+
     //taking care of fence [], {},()
     fenceAdjustment()
     {
@@ -862,7 +889,7 @@ export class MMParser {
                     {   
                         let childIdx = 0; // the idx for this fence's parent's children list
                         let block=ele.refLblock;
-                        for (let k = 0 ;i<block.parent.children.length;k++)
+                        for (let k = 0 ;k<block.parent.children.length;k++)
                         {
                             if(block.parent.children[k].uuid===block.uuid)
                             {
@@ -906,17 +933,38 @@ export class MMParser {
             const ele = this.lvlStack[i];
 
             if (ele.text != null) {
-                let eledim = ele.edim.dim;
-                let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
-                for (let i = 0; i < ele.text.toString().length; i++) {
-                    const onechar = ele.text.toString()[i];
-                    
-                    let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
-                    let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale);
 
-                   
-                    mathtxts.toTransedMesh();
+                if(ele.type==LBlockType.mfracmid)
+                {       
+                    let ismfracmid=true;
+                        let eledim = ele.edim.dim;
+                        const onechar = ele.text.toString();
+                        let box = { x0: xscale*(eledim.xs[0]  + xoffset ) , x1: xscale*(eledim.xs[1]  + xoffset )  , y0: eledim.ys[0], y1: -1 };
+                        
+                    console.log("putint mfracmid")
+                    console.log(box);
+                        
+                        let mathtxts = new MathMlStringMesh("mfracmid", scene, layerMask, box, eledim.scale,ismfracmid);
+                        mathtxts.toTransedMesh();
                 }
+                else
+                
+                {       let ismfracmid=false;
+
+                    let eledim = ele.edim.dim;
+                    let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
+                    for (let i = 0; i < ele.text.toString().length; i++) {
+                        const onechar = ele.text.toString()[i];
+                        
+                        let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
+                        let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale,ismfracmid);
+    
+                       
+                        mathtxts.toTransedMesh();
+                    }
+                }
+               
+
                 // let mathtxts = new MathText.MathString(text, scene, layerMask);
             }
 
@@ -1187,10 +1235,10 @@ export class MMParser {
                     if (tmpDetail.owner.type == LBlockType.mfrac) {
                         switch (tmpDetail.counter) {
                             case 0:
-                                tmpDetail.pos = Position.Mid;
+                                tmpDetail.pos = Position.Mid;//mfracmid
                                 break;
                             case 1:
-                                tmpDetail.pos = Position.Up; //mfracmid
+                                tmpDetail.pos = Position.Up; 
                                 break;
                             case 2:
                                 tmpDetail.pos = Position.Down;
