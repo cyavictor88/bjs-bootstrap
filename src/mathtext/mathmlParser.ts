@@ -917,6 +917,7 @@ export class MMParser {
                         }
                         else // ],),}
                         {
+                            //dont need to set tableblock because [,{,( already set tableblock for u
                             delx = block.edim.adjustForFence(false,tableBlock); // dis leave the table untouched
                             startingAdjustidxForGrandFlatArr = block.idxInArray + 1 ; // start adjusting start from the the next thing after closing symbol
                         }
