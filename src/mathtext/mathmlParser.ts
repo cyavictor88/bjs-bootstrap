@@ -334,16 +334,7 @@ export class MMParser {
         for(let i=0;i<firstlvlchildren.length;i++)
         {
             let lvl1child=firstlvlchildren[i];
-            if(lvl1child.type==LBlockType.mfrac)
-            {
-                // let yl = lvl1child.children[1].edim.dim.ys[1];
-                // let yh = lvl1child.children[2].edim.dim.ys[0];
-                // let ymid =  lvl1child.children[0].edim.dim.ys[1]/2 +lvl1child.children[0].edim.dim.ys[0] /2 ;
-                // let yc = (yl+yh)/2-ymid;
-                // lvl1child.edim.spatialTrans({delx:0,dely: yc},1);
-                
-            }
-            else
+            if(lvl1child.type!=LBlockType.mfrac)
             {
                 let y0l = lvl1child.edim.dim.ys[0];
                 let y0h = lvl1child.edim.dim.ys[1];
