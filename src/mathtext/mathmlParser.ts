@@ -328,18 +328,52 @@ export class MMParser {
 
         let firstlvlchildren = this.grandLBlockTree.children;
 
+        let mids = 0;
+        let cnt=0;
+
         for(let i=0;i<firstlvlchildren.length;i++)
         {
             let lvl1child=firstlvlchildren[i];
-            let y0l = lvl1child.edim.dim.ys[0];
-            let y0h = lvl1child.edim.dim.ys[1];
-            let y0c = (y0l+y0h)/2;
-            // if(y1c>y0c)
+            if(lvl1child.type==LBlockType.mfrac)
+            {
+                // let yl = lvl1child.children[1].edim.dim.ys[1];
+                // let yh = lvl1child.children[2].edim.dim.ys[0];
+                // let ymid =  lvl1child.children[0].edim.dim.ys[1]/2 +lvl1child.children[0].edim.dim.ys[0] /2 ;
+                // let yc = (yl+yh)/2-ymid;
+                // lvl1child.edim.spatialTrans({delx:0,dely: yc},1);
+                
+            }
+            else
+            {
+                let y0l = lvl1child.edim.dim.ys[0];
+                let y0h = lvl1child.edim.dim.ys[1];
+                let y0c = (y0l+y0h)/2;
                 lvl1child.edim.spatialTrans({delx:0,dely:y1c-y0c},1);
-            // else
-                // lvl1child.edim.spatialTrans({delx:0,dely:y1c-y0c},1);
+                mids+=lvl1child.edim.dim.ys[1]/2+lvl1child.edim.dim.ys[0]/2;
+                cnt+=1;
+            }
+           
 
         }
+
+        let avgMid = (mids)/cnt;
+        for(let i=0;i<firstlvlchildren.length;i++)
+        {
+            let lvl1child=firstlvlchildren[i];
+            if(lvl1child.type==LBlockType.mfrac)
+            {
+                    let dy=0;
+                    let mymid=(lvl1child.children[0].edim.dim.ys[0]+lvl1child.children[0].edim.dim.ys[1])/2;
+
+                    if(avgMid>lvl1child.children[0].edim.dim.ys[1])
+                        dy = avgMid - lvl1child.children[0].edim.dim.ys[1] + mymid
+                    else
+                        dy = avgMid - lvl1child.children[0].edim.dim.ys[0] - mymid 
+                    dy = avgMid - mymid;
+                    lvl1child.edim.spatialTrans({delx:0,dely: dy},1);
+            }
+        }
+
 
         // for (let i=0;i<this.grandFlatArr.length;i++)
         // {
@@ -870,9 +904,10 @@ export class MMParser {
                 for(let j=this.lvlStack[lvlidx].idxInArray;j<this.grandFlatArr.length;j++)
                 {
                     // console.log("moving ",this.grandFlatArr[j].text);
-                    this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:1,dely:0},1);
+                    this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:0.8,dely:0},1);
                 }
-                block.children[0].edim.dim.xs[1]=this.lvlStack[lvlidx+1].edim.dim.xs[0]; //block.children[0] is the mfracmid
+                block.children[0].edim.dim.xs[1]=this.lvlStack[lvlidx+1].edim.dim.xs[0]+0.8; //block.children[0] is the mfracmid
+                // block.children[0].edim.dim.xs[1]+=1; //block.children[0] is the mfracmid
                 for(let j=this.lvlStack[lvlidx+1].idxInArray;j<this.grandFlatArr.length;j++)
                 {
                     // console.log("moving ",this.grandFlatArr[j].text);

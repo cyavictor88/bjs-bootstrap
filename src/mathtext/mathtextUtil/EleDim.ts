@@ -221,16 +221,16 @@ export class EDim {
                 }
                 // else if (idx == 1) {
                 else if (ownedDetailed.pos == MP.Position.Down) {
-                    let newscale = .65;
+                    let newscale =1;// .65;
                     let delx = baseEle_x0 - dim.xs[0];
-                    let dely = -(newscale * dim.scale * (dim.ys[1] - dim.ys[0]) / 1);
+                    let dely = - (newscale * dim.scale*(dim.ys[1] - dim.ys[0])/0.9);
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
                 // else if (idx == 2) {
                 else if (ownedDetailed.pos == MP.Position.Up) {
-                    let newscale = .65;
+                    let newscale =1;// .65;
                     let delx = baseEle_x0 - dim.xs[0];
-                    let dely = (baseEle_y1 - baseEle_y0)/2 ;
+                    let dely = newscale * dim.scale*(baseEle_y1 - baseEle_y0)/1.5;
                     child.edim.spatialTrans({ delx: delx, dely: dely }, newscale);
                 }
             });

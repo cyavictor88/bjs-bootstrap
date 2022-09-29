@@ -74,7 +74,7 @@ class App {
         // var secondCamera = new  ArcRotateCamera("Camera2", 3*Math.PI / 2, Math.PI / 2, 5, Vector3.Zero(), scene);      
         var secondCamera = new UniversalCamera("camera", new Vector3(0, 0, -10), scene);
         secondCamera.setTarget(new Vector3(0, 0, 0));
-        var cameraZoom = 32;  // mathtext font , bigger number smaller font size
+        var cameraZoom = 64;  // mathtext font , bigger number smaller font size
         secondCamera.mode = Camera.ORTHOGRAPHIC_CAMERA;
         secondCamera.orthoTop = cameraZoom / 2;
         secondCamera.orthoBottom = -cameraZoom / 2;
@@ -105,8 +105,8 @@ class App {
        
        
       //  var [mathml, mmp] = trykatex("=\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}=");
-         //var [mathml, mmp] = trykatex("\\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
-         var [mathml, mmp] = trykatex("\\frac{5}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 ");
+         var [mathml, mmp] = trykatex("qq=\\frac{50}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 \\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
+         //var [mathml, mmp] = trykatex("\\frac{5}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 ");
         
         
         // var [mathml,mmp]=trykatex("\\begin{bmatrix} \\begin{bmatrix} 1_{xy} & 2_x \\\\ a & b \\end{bmatrix} & 3 & 6 \\\\ a & b & c \\\\ z & w & q  \\end{bmatrix}=\\vec{a_z}=\\lim_{x\\to\\infty} sin(\\theta)= \\vert_{-5}^{x17}= \\vec{a_z} =\\sum_{n=1}^{\\infty} 2^{-n} = 1_{x}^5=2 x + 88y =c_{iz \\pi} ");
