@@ -5,7 +5,7 @@ import * as lodash from 'lodash';
 import { first, transform } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
-import { MathMlStringMesh } from './mathml2mesh';
+import { MathMlStringMesh ,TypeMesh} from './mathml2mesh';
 import { EleDim as ED } from './mathtextUtil/EleDim';
 
 export enum MEleType {
@@ -296,9 +296,14 @@ export class MMParser {
         this.mfracAdjustment();
 
          this.alignVertically();
+         this.moveAllby(0,0);
 
 
 
+    }
+
+    moveAllby(dx:number,dy:number){
+        this.lvlStack[0].edim.spatialTrans({delx:dx,dely:dy},1);
     }
     insertFractionHelper()
     {
@@ -812,7 +817,7 @@ export class MMParser {
                     const char = ele.text.toString()[i];
                     // let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: (ele.x0 + xoffset + (i + 1) * xinterval) * xscale, y0: ele.y0, y1: ele.y1 };
                     let box = { x0: (ele.x0 + xoffset + i * xinterval) * xscale, x1: 0, y0: ele.y0, y1: 0 };
-                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale,false);
+                    let mathtxts = new MathMlStringMesh(char, scene, layerMask, box, ele.scale,TypeMesh.TMmfrac);
                     mathtxts.toTransedMesh();
                 }
 
@@ -959,7 +964,22 @@ export class MMParser {
         }
 
     }
+    putinScenceBBoxWithlvl(scene:Scene,layerMask: number, lvlnum:number)
+    {
+        let xoffset = -33;
+        let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
+        for (let i = 0; i < this.lvlStack.length; i++) {
+            const ele = this.lvlStack[i];
 
+            if (ele.lvl==lvlnum) {
+                let eledim = ele.edim.dim;
+                let box = { x0: xscale*(eledim.xs[0]  + xoffset ) , x1: xscale*(eledim.xs[1]  + xoffset )  , y0: eledim.ys[0], y1: eledim.ys[1] };
+                let mathtxts = new MathMlStringMesh("bbox", scene, layerMask, box, eledim.scale,TypeMesh.TMbbox);
+                mathtxts.toTransedMesh();
+            }
+
+        }
+    }
 
     putinSceneArrayWithED(scene: Scene, layerMask: number) {
         let xoffset = -33;
@@ -973,7 +993,6 @@ export class MMParser {
 
                 if(ele.type==LBlockType.mfracmid)
                 {       
-                    let ismfracmid=true;
                         let eledim = ele.edim.dim;
                         const onechar = ele.text.toString();
                         let box = { x0: xscale*(eledim.xs[0]  + xoffset ) , x1: xscale*(eledim.xs[1]  + xoffset )  , y0: eledim.ys[0], y1: -1 };
@@ -981,12 +1000,12 @@ export class MMParser {
                     console.log("putint mfracmid")
                     console.log(box);
                         
-                        let mathtxts = new MathMlStringMesh("mfracmid", scene, layerMask, box, eledim.scale,ismfracmid);
+                        let mathtxts = new MathMlStringMesh("mfracmid", scene, layerMask, box, eledim.scale,TypeMesh.TMmfrac);
                         mathtxts.toTransedMesh();
                 }
                 else
                 
-                {       let ismfracmid=false;
+                {      
 
                     let eledim = ele.edim.dim;
                     let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
@@ -994,7 +1013,7 @@ export class MMParser {
                         const onechar = ele.text.toString()[i];
                         
                         let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
-                        let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale,ismfracmid);
+                        let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale,TypeMesh.TMChar);
     
                        
                         mathtxts.toTransedMesh();

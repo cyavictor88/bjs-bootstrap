@@ -25,6 +25,12 @@ export type TBbox = {
     maxy: number;
 }
 
+export enum TypeMesh {
+    TMChar=0,
+    TMbbox=1,
+    TMmfrac=2,
+} 
+
 let dashkey = "U+" + "-".charCodeAt(0).toString(16).padStart(4, "0");
 let dash: TMeshJson = {
     char: dashkey,
@@ -33,6 +39,9 @@ let dash: TMeshJson = {
     tris: cjson[dashkey].tris,
     bbox: [0, 0, 0, 0]
 };
+
+
+
 
 
 export class MathMlStringMesh {
@@ -46,7 +55,7 @@ export class MathMlStringMesh {
     scale:number;
     // dashMesh: TMeshJson[];
 
-    constructor(mString: string, scene: Scene, masklayer: number, box: { x0: number, x1: number, y0: number, y1: number },scale:number,ismfracmid:boolean) {
+    constructor(mString: string, scene: Scene, masklayer: number, box: { x0: number, x1: number, y0: number, y1: number },scale:number,meshtype:TypeMesh) {
         this.scale=scale;
         this.stringBoundingBox = box;
         this.scene = scene;
@@ -59,7 +68,7 @@ export class MathMlStringMesh {
         this.mString = mString;
         this.jsonMeshes = [];
 
-        if(ismfracmid)
+        if(meshtype==TypeMesh.TMmfrac)
         {
             let key = "MFRACMID";
             let xlen= (box.x1-box.x0);
@@ -68,6 +77,24 @@ export class MathMlStringMesh {
             let xstart=0;
             let newmesh: TMeshJson = {
                 char: '-',
+                uni: key,
+                verts: [xstart, ystart, 0, xstart, ystart + ylen, 0, xstart+xlen, ystart + ylen, 0, xstart+xlen, ystart, 0],
+                tris: [0, 1, 2, 3, 0, 2],
+                bbox: [0, 0, 0, 0]
+            };
+            this.jsonMeshes.push(newmesh);
+            return;
+        }
+        if(meshtype==TypeMesh.TMbbox)
+        {
+
+            let key = "TTBOX";
+            let xlen= (box.x1-box.x0);
+            let ylen=box.y1-box.y0;
+            let ystart=-0.;
+            let xstart=0;
+            let newmesh: TMeshJson = {
+                char: 'D',
                 uni: key,
                 verts: [xstart, ystart, 0, xstart, ystart + ylen, 0, xstart+xlen, ystart + ylen, 0, xstart+xlen, ystart, 0],
                 tris: [0, 1, 2, 3, 0, 2],
