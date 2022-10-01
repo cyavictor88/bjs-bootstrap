@@ -53,6 +53,7 @@ export class MathMlStringMesh {
     masklayer: number;
     stringBoundingBox: { x0: number, x1: number, y0: number, y1: number };
     scale:number;
+    meshtype:TypeMesh;
     // dashMesh: TMeshJson[];
 
     constructor(mString: string, scene: Scene, masklayer: number, box: { x0: number, x1: number, y0: number, y1: number },scale:number,meshtype:TypeMesh) {
@@ -67,6 +68,7 @@ export class MathMlStringMesh {
         this.mat = fontmaterial;
         this.mString = mString;
         this.jsonMeshes = [];
+        this.meshtype=meshtype;
 
         if(meshtype==TypeMesh.TMmfrac)
         {
@@ -224,6 +226,12 @@ export class MathMlStringMesh {
             vertexData.indices = this.jsonMeshes[i].tris;
             vertexData.applyToMesh(customMesh);
             customMesh.material = this.mat;
+            if(this.meshtype==TypeMesh.TMbbox)
+            {
+                customMesh.showBoundingBox = true;
+                customMesh.material.alpha=0;
+
+            }
 
             this.parentMesh.addChild(customMesh);
 
