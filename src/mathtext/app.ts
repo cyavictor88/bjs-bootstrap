@@ -104,8 +104,8 @@ class App {
         // var [mathml, mmp] = trykatex(" \\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
        
        
-      //  var [mathml, mmp] = trykatex("=\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}=");
-         var [mathml, mmp] = trykatex("qq=\\frac{50}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 \\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
+        // var [mathml, mmp] = trykatex("\\textrm{normal text}");
+        var [mathml, mmp] = trykatex("qq=\\frac{50}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=\\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
          //var [mathml, mmp] = trykatex("\\frac{5}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 ");
         
         
@@ -121,7 +121,7 @@ class App {
         //= a = b^{c_{de}^{fg} \\pi} ");
         // mmp.putinSceneArray(scene, secondCamera.layerMask);
         mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
-        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
+        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,2);
         
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;

@@ -1,0 +1,263 @@
+<ori>qq=\\frac{50}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=\\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) </ori>
+<semantics>
+	<mrow>
+		<mi>q</mi>
+		<mi>q</mi>
+		<mo>=</mo>
+		<mfrac>
+			<mn>50</mn>
+			<mn>3</mn>
+		</mfrac>
+		<mo>=</mo>
+		<mfrac>
+			<mrow>
+				<mo fence="true">[</mo>
+				<mtable rowspacing="0.16em" columnalign="center center center" columnspacing="1em">
+					<mtr>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mi>a</mi>
+							</mstyle>
+						</mtd>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<msub>
+									<mi>b</mi>
+									<mrow>
+										<mi>x</mi>
+										<mi>y</mi>
+										<mi>z</mi>
+									</mrow>
+								</msub>
+							</mstyle>
+						</mtd>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mi>c</mi>
+							</mstyle>
+						</mtd>
+					</mtr>
+					<mtr>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<msup>
+									<mi>d</mi>
+									<mrow>
+										<mi>q</mi>
+										<mi>p</mi>
+									</mrow>
+								</msup>
+							</mstyle>
+						</mtd>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mi>e</mi>
+							</mstyle>
+						</mtd>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mrow>
+									<mi>f</mi>
+									<mi>o</mi>
+									<mi>o</mi>
+								</mrow>
+							</mstyle>
+						</mtd>
+					</mtr>
+				</mtable>
+				<mo fence="true">]</mo>
+			</mrow>
+			<mrow>
+				<mo fence="true">[</mo>
+				<mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em">
+					<mtr>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mi>a</mi>
+							</mstyle>
+						</mtd>
+						<mtd>
+							<mstyle scriptlevel="0" displaystyle="false">
+								<mi>c</mi>
+							</mstyle>
+						</mtd>
+					</mtr>
+				</mtable>
+				<mo fence="true">]</mo>
+			</mrow>
+		</mfrac>
+		<mo>=</mo>
+		<mtext>a b</mtext>
+		<mo>=</mo>
+		<mrow>
+			<mo fence="true">(</mo>
+			<mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em">
+				<mtr>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mrow>
+								<mi>a</mi>
+								<mi>n</mi>
+								<mi>n</mi>
+								<mi>n</mi>
+								<msup>
+									<mi>n</mi>
+									<mi>y</mi>
+								</msup>
+							</mrow>
+						</mstyle>
+					</mtd>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<msub>
+								<mi>b</mi>
+								<mn>44</mn>
+							</msub>
+						</mstyle>
+					</mtd>
+				</mtr>
+				<mtr>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<msubsup>
+								<mn>5</mn>
+								<mn>3</mn>
+								<mn>5</mn>
+							</msubsup>
+						</mstyle>
+					</mtd>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mrow>
+								<mi>z</mi>
+								<mi>z</mi>
+								<mi>z</mi>
+								<mi>z</mi>
+							</mrow>
+						</mstyle>
+					</mtd>
+				</mtr>
+			</mtable>
+			<mo fence="true">)</mo>
+		</mrow>
+		<mo>=</mo>
+		<msubsup>
+			<mo>∫</mo>
+			<mi>a</mi>
+			<mi>b</mi>
+		</msubsup>
+		<mi>f</mi>
+		<mo stretchy="false">(</mo>
+		<mi>x</mi>
+		<mo stretchy="false">)</mo>
+		<mtext></mtext>
+		<mi>d</mi>
+		<mi>x</mi>
+		<mo>=</mo>
+		<mrow>
+			<mo fence="true">{</mo>
+			<mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em">
+				<mtr>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mtext>true,</mtext>
+						</mstyle>
+					</mtd>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mrow>
+								<mtext>if </mtext>
+								<mn>0</mn>
+								<mo>&lt;</mo>
+								<msub>
+									<mi>x</mi>
+									<mi>u</mi>
+								</msub>
+								<mo>&lt;</mo>
+								<mn>3</mn>
+								<msup>
+									<mn>5</mn>
+									<mrow>
+										<mi>k</mi>
+										<mi>m</mi>
+										<mi>m</mi>
+									</mrow>
+								</msup>
+							</mrow>
+						</mstyle>
+					</mtd>
+				</mtr>
+				<mtr>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mtext>false,</mtext>
+						</mstyle>
+					</mtd>
+					<mtd>
+						<mstyle scriptlevel="0" displaystyle="false">
+							<mrow>
+								<mtext>otherwise</mtext>
+								<msup>
+									<mi>x</mi>
+									<mi>y</mi>
+								</msup>
+							</mrow>
+						</mstyle>
+					</mtd>
+				</mtr>
+			</mtable>
+		</mrow>
+		<mo>=</mo>
+		<msub>
+			<mo>∮</mo>
+			<mi>V</mi>
+		</msub>
+		<mi>f</mi>
+		<mo stretchy="false">(</mo>
+		<mi>s</mi>
+		<mo stretchy="false">)</mo>
+		<mo>=</mo>
+		<msubsup>
+			<mo>∫</mo>
+			<mi>a</mi>
+			<mi>b</mi>
+		</msubsup>
+		<mi>f</mi>
+		<mo stretchy="false">(</mo>
+		<mi>x</mi>
+		<mo stretchy="false">)</mo>
+		<mtext></mtext>
+		<mi>d</mi>
+		<mi>x</mi>
+		<mo>=</mo>
+		<munderover>
+			<mo>∑</mo>
+			<mrow>
+				<mi>n</mi>
+				<mo>=</mo>
+				<mn>1</mn>
+			</mrow>
+			<mi mathvariant="normal">∞</mi>
+		</munderover>
+		<mi>n</mi>
+		<mo>=</mo>
+		<munder>
+			<mrow>
+				<mi>lim</mi>
+				<mo>⁡</mo>
+			</mrow>
+			<mrow>
+				<mi>x</mi>
+				<mo>→</mo>
+				<mi mathvariant="normal">∞</mi>
+			</mrow>
+		</munder>
+		<mi>s</mi>
+		<mi>i</mi>
+		<mi>n</mi>
+		<mo stretchy="false">(</mo>
+		<mi>x</mi>
+		<mo stretchy="false">)</mo>
+	</mrow>
+	<annotation encoding="application/x-tex">qq=\frac{50}{3}=\frac{\begin{bmatrix} a &amp; b_{xyz} &amp; c \\  d^{qp} &amp; e &amp; foo \end{bmatrix}}{\begin{bmatrix} a &amp; c \end{bmatrix}}=\text{a b}=\begin{pmatrix} annnn^y &amp; b_{44}  \\ 5^5_3 &amp; zzzz  \end{pmatrix}=\int_{a}^{b} f(x) \, dx = \begin{cases} \textrm{true,} &amp; \textrm{if } 0 &lt; x_u &lt; 35^{kmm} \\ \textrm{false,} &amp; \textrm{otherwise} x^y \end{cases} = \oint_V f(s) = \int_{a}^{b} f(x) \, dx  =\sum_{n=1}^{\infty}n=\lim_{x \to \infty} sin(x) </annotation>
+</semantics>

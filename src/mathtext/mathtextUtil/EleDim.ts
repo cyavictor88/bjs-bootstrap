@@ -47,6 +47,8 @@ export class EDim {
         console.log(tableBlock.type);
         console.log(tableBlock.edim.dim);
         let newscale = tableBlock.edim.dim.ys[1]-tableBlock.edim.dim.ys[0];
+        // let newscale=1;
+        // newscale=1;
         let orixlen = this.dim.xs[1]-this.dim.xs[0];
         let delx  = (newscale * orixlen - orixlen)/1.5;
         this.spatialTransSingleEle({delx: 0, dely:newscale/10}, 1);

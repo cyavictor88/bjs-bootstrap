@@ -288,14 +288,19 @@ export class MMParser {
         //main
         // console.log(mathmlXml);
 
+
+
+
+
         // using grandblocktree, assemble lvlstack which contains dimension for chars
         this.assembleLvlStack(this.grandLBlockTree);
         console.log('******enddddd lvlStack*******');
 
-        this.fenceAdjustment();
-        this.mfracAdjustment();
+        // todo: clean upppppp 
 
-         this.alignVertically();
+        this.fenceAdjustment();
+        // this.mfracAdjustment();
+        //  this.alignVertically();
          this.moveAllby(0,0);
 
 
@@ -963,9 +968,44 @@ export class MMParser {
            // console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
         }
 
+        for(let i=0;i<this.lvlStack.length;i++)
+        {
+            let lvlele=this.lvlStack[i];
+            let arrele = this.grandFlatArr[lvlele.idxInArray];
+            if(arrele.attriArr!=null )
+            {
+                arrele.attriArr.forEach(attrEle => {
+                    if(attrEle.name==='fence')
+                    {  
+                        if(arrele.text==="[" || arrele.text==="(" || arrele.text==="{" || arrele.text==="|")
+                        {
+                            let parent = lvlele.parent;
+                            let pdim = parent.edim.dim;
+
+                            let newbbox = {xs:[],ys:[]};
+                            let next1stlvlele = this.lvlStack[i+1];
+
+                            let next2ndlvlele = this.lvlStack[i+2];
+
+
+
+                        }
+                    }
+                
+                })
+            }
+        }
+
     }
     putinScenceBBoxWithlvl(scene:Scene,layerMask: number, lvlnum:number)
     {
+        // let leafLvl = 0;
+        // for (let i = 0; i < this.lvlStack.length; i++) {
+        //     if(leafLvl<this.lvlStack[i].lvl)leafLvl=this.lvlStack[i].lvl;
+        // }
+        // lvlnum = leafLvl;
+
+
         let xoffset = -33;
         let xscale = 0.6; // i manaully try and get width=0.6 to be the size of a char that has heigh = 1
         for (let i = 0; i < this.lvlStack.length; i++) {
