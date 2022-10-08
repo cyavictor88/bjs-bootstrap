@@ -382,7 +382,7 @@ export class MMParser {
             }
         }
 
-        //fixing bbox for root node
+        //fix bbox for root parent only
         function getBiggerbbox( bbox1:ibbox,bbox2:ibbox): ibbox
         {
             let minx0=lodash.min([bbox1.xs[0],bbox2.xs[0]]);
@@ -948,6 +948,7 @@ export class MMParser {
                     this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:1,dely:0},1);
                 }
 
+                // fix bbox for parents
                 let parent_to_root = block.parent;
                 let lvltrs = block.lvl;
                 while(parent_to_root!=null && lvltrs>0)
@@ -993,6 +994,8 @@ export class MMParser {
                             tableBlock=block.parent.children[childIdx+1];  //find the corresponding table block
                             delx = block.edim.adjustForFence(true,tableBlock); // dis adjust the table itself already
                             startingAdjustidxForGrandFlatArr = tableBlock.idxInArray  + 1 ; //start adjusting starting from closing symbol
+
+                            //fix bbox for parents
                             let parent_to_root = block.parent;
                             let lvltrs = block.lvl;
                             while(parent_to_root!=null && lvltrs>0)
@@ -1007,15 +1010,15 @@ export class MMParser {
                             //dont need to set tableblock because [,{,( already set tableblock for u
                             delx = block.edim.adjustForFence(false,tableBlock); // dis leave the table untouched
                             startingAdjustidxForGrandFlatArr = block.idxInArray + 1 ; // start adjusting start from the the next thing after closing symbol
+                            
+                            //fix bbox for parents
                             let parent_to_root = block.parent;
                             let lvltrs = block.lvl;
-
                             while(parent_to_root!=null && lvltrs>0)
                             {
                                 parent_to_root.edim.dim.xs[1]+=delx;
                                 parent_to_root=parent_to_root.parent;
                                 lvltrs-=1;
-
                             }
                         
                         }
@@ -1037,68 +1040,8 @@ export class MMParser {
            // console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
         }
 
-        return;
-        // adjusting the bbox
-       
-        
-        // for(let i=0;i<this.lvlStack.length;i++)
-        // {
-        //     let lvlele:LBlock=this.lvlStack[i];
-        //     let arrele = this.grandFlatArr[lvlele.idxInArray];
-        //     if(arrele.attriArr!=null )
-        //     {
-        //         arrele.attriArr.forEach(attrEle => {
-        //             if(attrEle.name==='fence')
-        //             {  
-        //                 if(arrele.text==="[" || arrele.text==="(" || arrele.text==="{" || arrele.text==="|")
-        //                 {
-        //                     let parent = lvlele.parent;
-        //                     let openfenceIdx=-1;
-        //                     for(let j=0;j<parent.children.length;j++)
-        //                     {
-        //                         if(parent.children[j].uuid==lvlele.uuid)
-        //                         {
-        //                             openfenceIdx=j;
-        //                         }
-        //                     }
+     
 
-
-        //                     let pdim = parent.edim.dim;
-                            
-
-
-        //                     let pbbox:ibbox = {xs:pdim.xs,ys:pdim.ys};
-
-        //                     let n1ele = parent.children[openfenceIdx+1];
-        //                     let n1dim = n1ele.edim.dim;
-        //                     let n1bbox :ibbox = {xs:n1dim.xs,ys:n1dim.ys};
-
-
-
-        //                     let biggerbox :ibbox = getBiggerbbox(pbbox,n1bbox);
-        //                     pdim.xs=biggerbox.xs;
-        //                     pdim.ys=biggerbox.ys;
-
-
-        //                     if(parent.children.length>=1+openfenceIdx+2)
-        //                     {
-                                
-        //                         let n2ele =parent.children[openfenceIdx+2];
-        //                         let n2dim = n2ele.edim.dim;
-        //                         let n2bbox :ibbox = {xs:n2dim.xs,ys:n2dim.ys};
-        //                         let biggerbox2 :ibbox = getBiggerbbox(biggerbox,n2bbox);
-        //                         pdim.xs=biggerbox2.xs;
-        //                         pdim.ys=biggerbox2.ys;
-        //                     }
-
-
-
-        //                 }
-        //             }
-                
-        //         })
-        //     }
-        // }
 
     }
     putinScenceBBoxWithlvl(scene:Scene,layerMask: number, lvlnum:number)
