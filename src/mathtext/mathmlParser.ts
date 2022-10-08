@@ -304,8 +304,8 @@ export class MMParser {
         // todo: clean upppppp 
 
         this.fenceAdjustment();
-        // this.mfracAdjustment();
-        //  this.alignVertically();
+        this.mfracAdjustment();
+         this.alignVertically();
         //  this.moveAllby(0,0);
 
 
@@ -955,12 +955,31 @@ export class MMParser {
                             tableBlock=block.parent.children[childIdx+1];  //find the corresponding table block
                             delx = block.edim.adjustForFence(true,tableBlock); // dis adjust the table itself already
                             startingAdjustidxForGrandFlatArr = tableBlock.idxInArray  + 1 ; //start adjusting starting from closing symbol
+                            let parent_to_root = block.parent;
+                            let lvltrs = block.lvl;
+                            while(parent_to_root!=null && lvltrs>0)
+                            {
+                                parent_to_root.edim.dim.xs[1]+=delx;
+                                parent_to_root=parent_to_root.parent;
+                                lvltrs-=1;
+                            }
                         }
                         else // ],),}
                         {
                             //dont need to set tableblock because [,{,( already set tableblock for u
                             delx = block.edim.adjustForFence(false,tableBlock); // dis leave the table untouched
                             startingAdjustidxForGrandFlatArr = block.idxInArray + 1 ; // start adjusting start from the the next thing after closing symbol
+                            let parent_to_root = block.parent;
+                            let lvltrs = block.lvl;
+
+                            while(parent_to_root!=null && lvltrs>0)
+                            {
+                                parent_to_root.edim.dim.xs[1]+=delx;
+                                parent_to_root=parent_to_root.parent;
+                                lvltrs-=1;
+
+                            }
+                        
                         }
                         for(let j=startingAdjustidxForGrandFlatArr;j<this.grandFlatArr.length;j++)
                         {
@@ -980,7 +999,7 @@ export class MMParser {
            // console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
         }
 
-        
+        return;
         // adjusting the bbox
         function getBiggerbbox( bbox1:ibbox,bbox2:ibbox): ibbox
         {
