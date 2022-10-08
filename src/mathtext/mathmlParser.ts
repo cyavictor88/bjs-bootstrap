@@ -3,6 +3,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { CommonShadowLightPropertyGridComponent } from '@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/lights/commonShadowLightPropertyGridComponent';
 import * as lodash from 'lodash';
 import { first, transform } from 'lodash';
+import { min } from 'mathjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { MathMlStringMesh ,TypeMesh} from './mathml2mesh';
@@ -55,6 +56,10 @@ export interface MAttriDet {
     val: any,
 }
 
+export interface ibbox {
+    xs: [number,number],
+    ys: [number,number],
+}
 
 
 export interface OwnedDetail {
@@ -299,9 +304,9 @@ export class MMParser {
         // todo: clean upppppp 
 
         this.fenceAdjustment();
-        this.mfracAdjustment();
-         this.alignVertically();
-         this.moveAllby(0,0);
+        // this.mfracAdjustment();
+        //  this.alignVertically();
+        //  this.moveAllby(0,0);
 
 
 
@@ -961,16 +966,34 @@ export class MMParser {
                         {
                             // console.log("moving ",this.grandFlatArr[j].text);
                             this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:delx,dely:0},1);
+
+
+
+
                         }
+
+                     
+
                     }
                 });
             }
            // console.log(this.grandFlatArr[i].lvl, this.grandFlatArr[i].type,this.grandFlatArr[i].text);
         }
 
+        
+        // adjusting the bbox
+        function getBiggerbbox( bbox1:ibbox,bbox2:ibbox): ibbox
+        {
+            let minx0=lodash.min([bbox1.xs[0],bbox2.xs[0]]);
+            let miny0=lodash.min([bbox1.ys[0],bbox2.ys[0]]);
+            let maxx1=lodash.max([bbox1.xs[1],bbox2.xs[1]]);
+            let maxy1=lodash.max([bbox1.ys[1],bbox2.ys[1]]);
+            return {xs:[minx0,maxx1],ys:[miny0,maxy1]}
+        }
+        
         for(let i=0;i<this.lvlStack.length;i++)
         {
-            let lvlele=this.lvlStack[i];
+            let lvlele:LBlock=this.lvlStack[i];
             let arrele = this.grandFlatArr[lvlele.idxInArray];
             if(arrele.attriArr!=null )
             {
@@ -980,12 +1003,43 @@ export class MMParser {
                         if(arrele.text==="[" || arrele.text==="(" || arrele.text==="{" || arrele.text==="|")
                         {
                             let parent = lvlele.parent;
+                            let openfenceIdx=-1;
+                            for(let j=0;j<parent.children.length;j++)
+                            {
+                                if(parent.children[j].uuid==lvlele.uuid)
+                                {
+                                    openfenceIdx=j;
+                                }
+                            }
+
+
                             let pdim = parent.edim.dim;
+                            
 
-                            let newbbox = {xs:[],ys:[]};
-                            let next1stlvlele = this.lvlStack[i+1];
 
-                            let next2ndlvlele = this.lvlStack[i+2];
+                            let pbbox:ibbox = {xs:pdim.xs,ys:pdim.ys};
+
+                            let n1ele = parent.children[openfenceIdx+1];
+                            let n1dim = n1ele.edim.dim;
+                            let n1bbox :ibbox = {xs:n1dim.xs,ys:n1dim.ys};
+
+
+
+                            let biggerbox :ibbox = getBiggerbbox(pbbox,n1bbox);
+                            pdim.xs=biggerbox.xs;
+                            pdim.ys=biggerbox.ys;
+
+
+                            if(parent.children.length>=1+openfenceIdx+2)
+                            {
+                                
+                                let n2ele =parent.children[openfenceIdx+2];
+                                let n2dim = n2ele.edim.dim;
+                                let n2bbox :ibbox = {xs:n2dim.xs,ys:n2dim.ys};
+                                let biggerbox2 :ibbox = getBiggerbbox(biggerbox,n2bbox);
+                                pdim.xs=biggerbox2.xs;
+                                pdim.ys=biggerbox2.ys;
+                            }
 
 
 
