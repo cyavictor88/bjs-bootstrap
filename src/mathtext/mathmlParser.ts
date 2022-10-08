@@ -306,7 +306,7 @@ export class MMParser {
         this.fenceAdjustment();
         this.mfracAdjustment();
          this.alignVertically();
-        //  this.moveAllby(0,0);
+         this.moveAllby(-50,5);
 
 
 
@@ -357,6 +357,8 @@ export class MMParser {
                 lvl1child.edim.spatialTrans({delx:0,dely:y1c-y0c},1);
                 mids+=lvl1child.edim.dim.ys[1]/2+lvl1child.edim.dim.ys[0]/2;
                 cnt+=1;
+
+               
             }
            
 
@@ -379,6 +381,29 @@ export class MMParser {
                     lvl1child.edim.spatialTrans({delx:0,dely: dy},1);
             }
         }
+
+        //fixing bbox for root node
+        function getBiggerbbox( bbox1:ibbox,bbox2:ibbox): ibbox
+        {
+            let minx0=lodash.min([bbox1.xs[0],bbox2.xs[0]]);
+            let miny0=lodash.min([bbox1.ys[0],bbox2.ys[0]]);
+            let maxx1=lodash.max([bbox1.xs[1],bbox2.xs[1]]);
+            let maxy1=lodash.max([bbox1.ys[1],bbox2.ys[1]]);
+            return {xs:[minx0,maxx1],ys:[miny0,maxy1]}
+        }
+
+        let bigbbox = {xs:this.grandLBlockTree.edim.dim.xs,ys:this.grandLBlockTree.edim.dim.ys};
+        for(let i=0;i<this.grandFlatArr.length;i++)
+        {
+            let ele=this.grandFlatArr[i];
+            let eleibbox ={xs:ele.refLblock.edim.dim.xs,ys:ele.refLblock.edim.dim.ys};
+            bigbbox = getBiggerbbox( bigbbox, eleibbox  );
+        }
+        this.grandLBlockTree.edim.dim.xs=bigbbox.xs;
+        this.grandLBlockTree.edim.dim.ys=bigbbox.ys;
+
+
+        //fixing bbox
 
 
         // for (let i=0;i<this.grandFlatArr.length;i++)
@@ -889,6 +914,9 @@ export class MMParser {
 
     }
 
+    
+
+
     mfracAdjustment()
     {
         let tableBlock:LBlock; 
@@ -897,7 +925,7 @@ export class MMParser {
             let ele = this.grandFlatArr[i];
             if(ele.type==LBlockType.mfrac)
             {
-                let lvlidx = 0; // the idx for this fence's parent's children list
+                let lvlidx = 0; 
                 let block=ele.refLblock;
                 for (let k = 0 ;k<this.lvlStack.length;k++)
                 {
@@ -918,6 +946,16 @@ export class MMParser {
                 {
                     // console.log("moving ",this.grandFlatArr[j].text);
                     this.grandFlatArr[j].refLblock.edim.spatialTransSingleEle({delx:1,dely:0},1);
+                }
+
+                let parent_to_root = block.parent;
+                let lvltrs = block.lvl;
+                while(parent_to_root!=null && lvltrs>0)
+                {
+                    let delx=1+0.8;
+                    parent_to_root.edim.dim.xs[1]+=delx;
+                    parent_to_root=parent_to_root.parent;
+                    lvltrs-=1;
                 }
             }
         }
@@ -1001,73 +1039,66 @@ export class MMParser {
 
         return;
         // adjusting the bbox
-        function getBiggerbbox( bbox1:ibbox,bbox2:ibbox): ibbox
-        {
-            let minx0=lodash.min([bbox1.xs[0],bbox2.xs[0]]);
-            let miny0=lodash.min([bbox1.ys[0],bbox2.ys[0]]);
-            let maxx1=lodash.max([bbox1.xs[1],bbox2.xs[1]]);
-            let maxy1=lodash.max([bbox1.ys[1],bbox2.ys[1]]);
-            return {xs:[minx0,maxx1],ys:[miny0,maxy1]}
-        }
+       
         
-        for(let i=0;i<this.lvlStack.length;i++)
-        {
-            let lvlele:LBlock=this.lvlStack[i];
-            let arrele = this.grandFlatArr[lvlele.idxInArray];
-            if(arrele.attriArr!=null )
-            {
-                arrele.attriArr.forEach(attrEle => {
-                    if(attrEle.name==='fence')
-                    {  
-                        if(arrele.text==="[" || arrele.text==="(" || arrele.text==="{" || arrele.text==="|")
-                        {
-                            let parent = lvlele.parent;
-                            let openfenceIdx=-1;
-                            for(let j=0;j<parent.children.length;j++)
-                            {
-                                if(parent.children[j].uuid==lvlele.uuid)
-                                {
-                                    openfenceIdx=j;
-                                }
-                            }
+        // for(let i=0;i<this.lvlStack.length;i++)
+        // {
+        //     let lvlele:LBlock=this.lvlStack[i];
+        //     let arrele = this.grandFlatArr[lvlele.idxInArray];
+        //     if(arrele.attriArr!=null )
+        //     {
+        //         arrele.attriArr.forEach(attrEle => {
+        //             if(attrEle.name==='fence')
+        //             {  
+        //                 if(arrele.text==="[" || arrele.text==="(" || arrele.text==="{" || arrele.text==="|")
+        //                 {
+        //                     let parent = lvlele.parent;
+        //                     let openfenceIdx=-1;
+        //                     for(let j=0;j<parent.children.length;j++)
+        //                     {
+        //                         if(parent.children[j].uuid==lvlele.uuid)
+        //                         {
+        //                             openfenceIdx=j;
+        //                         }
+        //                     }
 
 
-                            let pdim = parent.edim.dim;
+        //                     let pdim = parent.edim.dim;
                             
 
 
-                            let pbbox:ibbox = {xs:pdim.xs,ys:pdim.ys};
+        //                     let pbbox:ibbox = {xs:pdim.xs,ys:pdim.ys};
 
-                            let n1ele = parent.children[openfenceIdx+1];
-                            let n1dim = n1ele.edim.dim;
-                            let n1bbox :ibbox = {xs:n1dim.xs,ys:n1dim.ys};
-
-
-
-                            let biggerbox :ibbox = getBiggerbbox(pbbox,n1bbox);
-                            pdim.xs=biggerbox.xs;
-                            pdim.ys=biggerbox.ys;
+        //                     let n1ele = parent.children[openfenceIdx+1];
+        //                     let n1dim = n1ele.edim.dim;
+        //                     let n1bbox :ibbox = {xs:n1dim.xs,ys:n1dim.ys};
 
 
-                            if(parent.children.length>=1+openfenceIdx+2)
-                            {
+
+        //                     let biggerbox :ibbox = getBiggerbbox(pbbox,n1bbox);
+        //                     pdim.xs=biggerbox.xs;
+        //                     pdim.ys=biggerbox.ys;
+
+
+        //                     if(parent.children.length>=1+openfenceIdx+2)
+        //                     {
                                 
-                                let n2ele =parent.children[openfenceIdx+2];
-                                let n2dim = n2ele.edim.dim;
-                                let n2bbox :ibbox = {xs:n2dim.xs,ys:n2dim.ys};
-                                let biggerbox2 :ibbox = getBiggerbbox(biggerbox,n2bbox);
-                                pdim.xs=biggerbox2.xs;
-                                pdim.ys=biggerbox2.ys;
-                            }
+        //                         let n2ele =parent.children[openfenceIdx+2];
+        //                         let n2dim = n2ele.edim.dim;
+        //                         let n2bbox :ibbox = {xs:n2dim.xs,ys:n2dim.ys};
+        //                         let biggerbox2 :ibbox = getBiggerbbox(biggerbox,n2bbox);
+        //                         pdim.xs=biggerbox2.xs;
+        //                         pdim.ys=biggerbox2.ys;
+        //                     }
 
 
 
-                        }
-                    }
+        //                 }
+        //             }
                 
-                })
-            }
-        }
+        //         })
+        //     }
+        // }
 
     }
     putinScenceBBoxWithlvl(scene:Scene,layerMask: number, lvlnum:number)
