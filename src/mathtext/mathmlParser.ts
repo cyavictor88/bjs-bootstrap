@@ -299,8 +299,8 @@ export class MMParser {
         // todo: clean upppppp 
 
         this.fenceAdjustment();
-        // this.mfracAdjustment();
-        //  this.alignVertically();
+        this.mfracAdjustment();
+         this.alignVertically();
          this.moveAllby(0,0);
 
 

@@ -121,7 +121,7 @@ class App {
         //= a = b^{c_{de}^{fg} \\pi} ");
         // mmp.putinSceneArray(scene, secondCamera.layerMask);
         mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
-        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,2);
+        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,1);
         
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;
