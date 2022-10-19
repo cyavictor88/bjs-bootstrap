@@ -122,7 +122,7 @@ class App {
         // mmp.putinSceneArray(scene, secondCamera.layerMask);
         mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
         // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,1);
-        // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
+        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
         
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;

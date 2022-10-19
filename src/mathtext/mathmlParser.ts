@@ -1091,10 +1091,10 @@ export class MMParser {
 
                     let eledim = ele.edim.dim;
                     let xinterval = (eledim.xs[1] - eledim.xs[0]) / ele.text.toString().length;
-                    for (let i = 0; i < ele.text.toString().length; i++) {
-                        const onechar = ele.text.toString()[i];
+                    for (let j = 0; j < ele.text.toString().length; j++) {
+                        const onechar = ele.text.toString()[j];
                         
-                        let box = { x0: xscale*(eledim.xs[0] + i * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
+                        let box = { x0: xscale*(eledim.xs[0] + j * xinterval + xoffset ) , x1: -1, y0: eledim.ys[0], y1: -1 };
                         let mathtxts = new MathMlStringMesh(onechar, scene, layerMask, box, eledim.scale,TypeMesh.TMChar);
     
                        
