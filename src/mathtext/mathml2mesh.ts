@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { BoundingBox, Material, Matrix, Mesh, Scene, Vector3, Vector4 } from "@babylonjs/core";
 import { Color3 } from "@babylonjs/core/Maths";
+import * as mathjs from 'mathjs';
 
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import * as lodash from 'lodash';
@@ -189,6 +190,27 @@ export class MathMlStringMesh {
         };
         return res;
     };
+
+    public getSpatialTransArr_MathJS(posArray: number[], trans: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number }): number[] {
+       
+        let transMat = mathjs.multiply(mathjs.identity(4), scale.x) as mathjs.Matrix;
+        transMat.subset(mathjs.index([0, 1, 2], [3]), [[trans.x], [trans.y], [trans.z]]);
+        var transedPoses = [];
+
+        for (let i = 0; i < posArray.length; i += 3) {
+            let tmpmat = mathjs.multiply(transMat, mathjs.matrix([[posArray[i]], [posArray[i+1]], [posArray[i+2]],[1] ])) as mathjs.Matrix;
+            for (let j = 0; j < 3; j++)
+            {
+                transedPoses.push(tmpmat.get([j, 0]) as number);
+            }
+
+        }
+        return transedPoses;
+    }
+
+       
+
+
 
     public getSpatialTransArr(posArray: number[], trans: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number }): number[] {
         let mat = Matrix.Identity();

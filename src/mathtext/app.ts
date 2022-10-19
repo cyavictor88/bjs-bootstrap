@@ -74,7 +74,7 @@ class App {
         // var secondCamera = new  ArcRotateCamera("Camera2", 3*Math.PI / 2, Math.PI / 2, 5, Vector3.Zero(), scene);      
         var secondCamera = new UniversalCamera("camera", new Vector3(0, 0, -10), scene);
         secondCamera.setTarget(new Vector3(0, 0, 0));
-        var cameraZoom = 64;  // mathtext font , bigger number smaller font size
+        var cameraZoom = 60;  // mathtext font , bigger number smaller font size
         secondCamera.mode = Camera.ORTHOGRAPHIC_CAMERA;
         secondCamera.orthoTop = cameraZoom / 2;
         secondCamera.orthoBottom = -cameraZoom / 2;
@@ -105,7 +105,7 @@ class App {
        
        
         // var [mathml, mmp] = trykatex("\\textrm{normal text}");
-        var [mathml, mmp] = trykatex("qq=\\frac{50}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=\\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
+        var [mathml, mmp] = trykatex("qq=\\frac{99}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=\\text{a b}=\\begin{pmatrix} annnn^y & b_{44}  \\\\ 5^5_3 & zzzz  \\end{pmatrix}=\\int_{a}^{b} f(x) \\, dx = \\begin{cases} \\textrm{true,} & \\textrm{if } 0 < x_u < 35^{kmm} \\\\ \\textrm{false,} & \\textrm{otherwise} x^y \\end{cases} = \\oint_V f(s) = \\int_{a}^{b} f(x) \\, dx  =\\sum_{n=1}^{\\infty}n=\\lim_{x \\to \\infty} sin(x) ");
          //var [mathml, mmp] = trykatex("\\frac{5}{3}=\\frac{\\begin{bmatrix} a & b_{xyz} & c \\\\  d^{qp} & e & foo \\end{bmatrix}}{\\begin{bmatrix} a & c \\end{bmatrix}}=2 ");
         
         
@@ -121,8 +121,8 @@ class App {
         //= a = b^{c_{de}^{fg} \\pi} ");
         // mmp.putinSceneArray(scene, secondCamera.layerMask);
         mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
-        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,1);
-        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
+        // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,1);
+        // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
         
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;

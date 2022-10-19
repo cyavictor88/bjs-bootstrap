@@ -1,11 +1,6 @@
-import { DefaultRenderingPipeline, RegisterMaterialPlugin, TimerState } from '@babylonjs/core';
 import { Scene } from '@babylonjs/core/scene';
-import { CommonShadowLightPropertyGridComponent } from '@babylonjs/inspector/components/actionTabs/tabs/propertyGrids/lights/commonShadowLightPropertyGridComponent';
 import * as lodash from 'lodash';
-import { first, transform } from 'lodash';
-import { min } from 'mathjs';
 import { v4 as uuidv4 } from 'uuid';
-
 import { MathMlStringMesh ,TypeMesh} from './mathml2mesh';
 import { EleDim as ED } from './mathtextUtil/EleDim';
 
