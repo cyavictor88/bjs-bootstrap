@@ -18,6 +18,9 @@ import { MathText } from './mathtext';
 import { trykatex } from "./trykatex";
 import { showAxis } from "../geo/axis";
 
+// import {mathmesh} from "../../../mathmesh/dist/mathmesh";
+import {mathmesh} from "mathmesh";
+import {VertexData} from "@babylonjs/core";
 class App {
 
     public mat: StandardMaterial;
@@ -120,19 +123,34 @@ class App {
         
         //= a = b^{c_{de}^{fg} \\pi} ");
         // mmp.putinSceneArray(scene, secondCamera.layerMask);
-        mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
+        // mmp.putinSceneArrayWithED(scene, secondCamera.layerMask);
         // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,1);
-        mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
+        // mmp.putinScenceBBoxWithlvl(scene,secondCamera.layerMask,0);
         
         var mathdiv = document.createElement("div");
         mathdiv.innerHTML = mathml;
         document.body.appendChild(mathdiv);
 
+        var verts = mathmesh("\\begin{bmatrix} 1_{xy_a} & 9eee87 & \\textrm{ }3 \\\\ a^{e^x} & \\frac{x}{z}\\textrm{ } & c \\end{bmatrix}");
+        // var verts = mathmesh("\\begin{bmatrix} 1_{xy_a} & 987654 & 3 \\\\ a^{e^x} & b & c \\end{bmatrix}");
+
+            let customMesh = new Mesh("mathmesh", scene);
+            customMesh.layerMask =secondCamera.layerMask;
+            let vertexData = new VertexData();
 
 
 
+            vertexData.positions = verts.positions;
+            vertexData.indices = verts.indices;
+            vertexData.applyToMesh(customMesh);
+
+            let fontmaterial = new StandardMaterial("mathmeshMat", scene);
+            fontmaterial.backFaceCulling = false;
+            fontmaterial.emissiveColor = new Color3(0, 1, 0);
+            customMesh.material = fontmaterial;
 
 
+        console.log(customMesh.getBoundingInfo().boundingBox)
 
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
